@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Интерактивный тренажер: Обучение по охране труда (Постановление № 2464)</title>
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            width: 100vw;
+            padding: 20px 0;
+            overflow-x: hidden;
+            overflow-y: auto; /* Включаем вертикальный скролл при необходимости */
+        }
+
+        /* Обертка для гибкого масштабирования */
+        .scaler-wrapper {
+            width: 900px;
+            transform-origin: top center; /* Фиксируем верхнюю точку для корректной прокрутки */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            transition: transform 0.15s ease-out;
+        }
+
+        .container {
+            width: 900px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .card-selector {
+            background-color: #1e293b;
+            border: 1px solid #334155;
+            border-left: 4px solid #38bdf8;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
+            transition: all 0.2s ease;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 16px;
+            line-height: 1.3;
+        }
+
+        .select-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        select {
+            width: 100%;
+            padding: 14px 40px 14px 16px;
+            font-size: 15px;
+            color: #f8fafc;
+            background-color: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            appearance: none;
+            outline: none;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        select:focus {
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+        }
+
+        .select-arrow {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            width: 10px;
+            height: 10px;
+            border-right: 2px solid #38bdf8;
+            border-bottom: 2px solid #38bdf8;
+            transform: translateY(-70%) rotate(45deg);
+        }
+
+        /* Таблица результатов */
+        .table-container {
+            margin-top: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #334155;
+            background-color: #0f172a;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            display: none;
+        }
+
+        .table-container.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        th {
+            background-color: #334155;
+            color: #38bdf8;
+            font-weight: 700;
+            padding: 12px 16px;
+            border-bottom: 2px solid #475569;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #1e293b;
+            color: #cbd5e1;
+            line-height: 1.4;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:nth-child(even) {
+            background-color: #162032;
+        }
+
+        .tag-place {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .tag-uc { 
+            background-color: rgba(239, 68, 68, 0.2); 
+            color: #fca5a5; 
+            border: 1px solid rgba(239, 68, 68, 0.4);
+        }
+
+        .tag-inner { 
+            background-color: rgba(16, 185, 129, 0.2); 
+            color: #6ee7b7; 
+            border: 1px solid rgba(16, 185, 129, 0.4);
+        }
+
+        .tag-both { 
+            background-color: rgba(56, 189, 248, 0.2); 
+            color: #7dd3fc; 
+            border: 1px solid rgba(56, 189, 248, 0.4);
+        }
+    </style>
+</head>
+<body>
+
+<div class="scaler-wrapper" id="scalerWrapper">
+    <div class="container">
+
+        <!-- Блок 1: Выбор программы обучения -->
+        <div class="card-selector">
+            <div class="card-title">Выберите вид обучения по охране труда и разберетесь, кого отправить учиться</div>
+            <div class="select-wrapper">
+                <select id="programSelect">
+                    <option value="" disabled selected>Выберите вид обучения...</option>
+                    <option value="prog_a">Программа А: Общие вопросы охраны труда и СУОТ (не менее 16 ч)</option>
+                    <option value="prog_b">Программа Б: Безопасные методы и приемы выполнения работ (не менее 16 ч)</option>
+                    <option value="prog_v">Программа В: Работы повышенной опасности</option>
+                    <option value="first_aid">Оказание первой помощи пострадавшим</option>
+                    <option value="siz">Использование (применение) средств индивидуальной защиты (СИЗ)</option>
+                </select>
+                <div class="select-arrow"></div>
+            </div>
+
+            <div class="table-container" id="programTableContainer">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 45%;">Кто</th>
+                            <th style="width: 25%;">Когда</th>
+                            <th style="width: 30%;">Где</th>
+                        </tr>
+                    </thead>
+                    <tbody id="programTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Блок 2: Выбор должности/категории -->
+        <div class="card-selector" style="border-left-color: #f59e0b;">
+            <div class="card-title">Выберите должность и узнаете, какое обучение по охране труда пройти</div>
+            <div class="select-wrapper">
+                <select id="roleSelect">
+                    <option value="" disabled selected>Выберите должность...</option>
+                    <option value="head_org">Руководитель организации (филиала)</option>
+                    <option value="head_dep">Руководитель структурного подразделения (или его заместитель)</option>
+                    <option value="ot_spec">Специалист по охране труда</option>
+                    <option value="instructor">Лицо, проводящее инструктажи / обучение по ОТ</option>
+                    <option value="worker_danger">Рабочий, выполняющий работы повышенной опасности</option>
+                    <option value="worker_ordinary">Рабочий линейный (обычные условия труда)</option>
+                    <option value="commission_member">Член комиссии по проверке знания требований ОТ</option>
+                </select>
+                <div class="select-arrow" style="border-color: #f59e0b;"></div>
+            </div>
+
+            <div class="table-container" id="roleTableContainer">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 45%; color: #f59e0b;">Что</th>
+                            <th style="width: 25%; color: #f59e0b;">Когда</th>
+                            <th style="width: 30%; color: #f59e0b;">Где</th>
+                        </tr>
+                    </thead>
+                    <tbody id="roleTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // База данных тренажёра
+    const programData = {
+        prog_a: [
+            { who: "Руководители организаций и филиалов", when: "В течение 60 дней при приеме, далее 1 раз в 3 года", where: "В учебном центре", type: "uc" },
+            { who: "Заместители руководителя, ответственные за ОТ", when: "В течение 60 дней при приеме, далее 1 раз в 3 года", where: "В учебном центре", type: "uc" },
+            { who: "Специалисты по охране труда", when: "В течение 60 дней при приеме, далее 1 раз в 3 года", where: "В учебном центре", type: "uc" },
+            { who: "Члены комиссий по проверке знаний (по прог. А)", when: "В течение 60 дней при приеме, далее 1 раз в 3 года", where: "В учебном центре", type: "uc" }
+        ],
+        prog_b: [
+            { who: "Руководители структурных подразделений и их замы", when: "В течение 60 дней при приеме, далее 1 раз в 3 года", where: "В учебном центре или у работодателя", type: "both" },
+            { who: "Специалисты и инженерно-технические работники (ИТР)", when: "В течение 60 дней при приеме, далее 1 раз в 3 года", where: "В учебном центре или у работодателя", type: "both" },
+            { who: "Рабочие профессии", when: "В течение 60 дней при приеме, далее 1 раз в 3 года", where: "В учебном центре или у работодателя", type: "both" },
+            { who: "Лица, проводящие инструктажи и обучение по прог. Б", when: "В течение 60 дней при приеме, далее 1 раз в 3 года", where: "В учебном центре", type: "uc" },
+            { who: "Члены комиссий по проверке знаний (по прог. Б)", when: "В течение 60 дней при приеме, далее 1 раз в 3 года", where: "В учебном центре", type: "uc" }
+        ],
+        prog_v: [
+            { who: "Рабочие, выполняющие работы повышенной опасности", when: "В течение 60 дней при приеме, далее не реже 1 раза в год", where: "В учебном центре или у работодателя", type: "both" },
+            { who: "Ответственные за организацию и проведение работ повышенной опасности", when: "В течение 60 дней при приеме, далее не реже 1 раза в год", where: "В учебном центре или у работодателя", type: "both" },
+            { who: "Лица, проводящие инструктажи и обучение по прог. В", when: "В течение 60 дней при приеме, далее не реже 1 раза в год", where: "В учебном центре", type: "uc" },
+            { who: "Члены специализированных комиссий (по прог. В)", when: "В течение 60 дней при приеме, далее не реже 1 раза в год", where: "В учебном центре", type: "uc" },
+            { who: "Специалисты по охране труда, если контролируют выполнение работ", when: "В течение 60 дней при приеме, далее не реже 1 раза в год", where: "В учебном центре", type: "uc" }
+        ],
+        first_aid: [
+            { who: "Рабочие профессии и водители", when: "В течение 60 дней при приеме (30 дней для впервые начавших), далее 1 раз в 3 года", where: "В учебном центре или у работодателя", type: "both" },
+            { who: "Инструкторы и преподаватели по обучению первой помощи", when: "В течение 60 дней при приеме, далее 1 раз в 3 года", where: "В учебном центре", type: "uc" },
+            { who: "Специалисты по ОТ и члены комиссий по проверке знания первой помощи", when: "В течение 60 дней при приеме, далее 1 раз в 3 года", where: "В учебном центре", type: "uc" }
+        ],
+        siz: [
+            { who: "Работники, применяющие СИЗ 2-го класса (требующие навыков)", when: "В течение 60 дней при приеме, далее 1 раз в 3 года", where: "В учебном центре или у работодателя", type: "both" },
+            { who: "Инструкторы по обучению использованию СИЗ", when: "В течение 60 дней при приеме, далее 1 раз в 3 года", where: "В учебном центре", type: "uc" },
+            { who: "Члены комиссий по проверке знаний применения СИЗ", when: "В течение 60 дней при приеме, далее 1 раз в 3 года", where: "В учебном центре", type: "uc" }
+        ]
+    };
+
+    const roleData = {
+        head_org: [
+            { what: "Программа А: Общие вопросы ОТ и СУОТ", when: "В течение 60 дней, далее 1 раз в 3 года", where: "В учебном центре", type: "uc" }
+        ],
+        head_dep: [
+            { what: "Программа Б: Безопасные методы работ", when: "В течение 60 дней, далее 1 раз в 3 года", where: "В учебном центре или внутри компании", type: "both" },
+            { what: "Оказание первой помощи пострадавшим", when: "В течение 60 дней, далее 1 раз в 3 года", where: "В учебном центре или внутри компании", type: "both" }
+        ],
+        ot_spec: [
+            { what: "Программа А: Общие вопросы ОТ и СУОТ", when: "В течение 60 дней, далее 1 раз в 3 года", where: "В учебном центре", type: "uc" },
+            { what: "Программа Б: Безопасные методы работ", when: "В течение 60 дней, далее 1 раз в 3 года", where: "В учебном центре", type: "uc" },
+            { what: "Оказание первой помощи пострадавшим", when: "В течение 60 дней, далее 1 раз в 3 года", where: "В учебном центре", type: "uc" },
+            { what: "Использование (применение) СИЗ по решению работодателя", when: "В течение 60 дней, далее 1 раз в 3 года", where: "В учебном центре", type: "uc" },
+            { what: "Работы повышенной опасности (если контролируют выполнение работ)", when: "В течение 60 дней, далее 1 раз в 3 года", where: "В учебном центре", type: "uc" }
+        ],
+        instructor: [
+            { what: "Программа Б (или В — по профилю)", when: "В течение 60 дней, далее 1 раз в 3 года (В — 1 раз в год)", where: "В учебном центре", type: "uc" },
+            { what: "Оказание первой помощи (если проводит инструктаж/обучение)", when: "В течение 60 дней, далее 1 раз в 3 года", where: "В учебном центре", type: "uc" }
+        ],
+        worker_danger: [
+            { what: "Программа Б: Безопасные методы работ", when: "В течение 60 дней, далее 1 раз в 3 года", where: "В учебном центре или внутри компании", type: "both" },
+            { what: "Программа В: Работы повышенной опасности", when: "В течение 60 дней, далее не реже 1 раза в год", where: "В учебном центре или внутри компании", type: "both" },
+            { what: "Оказание первой помощи пострадавшим", when: "В течение 60 дней, далее 1 раз в 3 года", where: "В учебном центре или внутри компании", type: "both" },
+            { what: "Использование СИЗ 2-го класса", when: "В течение 60 дней, далее 1 раз в 3 года", where: "В учебном центре или внутри компании", type: "both" }
+        ],
+        worker_ordinary: [
+            { what: "Программа Б: Безопасные методы работ", when: "В течение 60 дней, далее 1 раз в 3 года", where: "В учебном центре или внутри компании", type: "both" },
+            { what: "Оказание первой помощи пострадавшим", when: "В течение 60 дней (30 дней при первой работе), далее 1 раз в 3 года", where: "В учебном центре или внутри компании", type: "both" }
+        ],
+        commission_member: [
+            { what: "Программы А, Б, В (в зависимости от состава комиссии)", when: "В течение 60 дней, далее 1 раз в 3 года", where: "В учебном центре", type: "uc" },
+            { what: "Оказание первой помощи и Использование СИЗ", when: "В течение 60 дней, далее 1 раз в 3 года", where: "В учебном центре", type: "uc" }
+        ]
+    };
+
+    // Слушатели выбора
+    const programSelect = document.getElementById('programSelect');
+    const programTableContainer = document.getElementById('programTableContainer');
+    const programTableBody = document.getElementById('programTableBody');
+
+    const roleSelect = document.getElementById('roleSelect');
+    const roleTableContainer = document.getElementById('roleTableContainer');
+    const roleTableBody = document.getElementById('roleTableBody');
+
+    programSelect.addEventListener('change', (e) => {
+        const rows = programData[e.target.value];
+        programTableBody.innerHTML = '';
+        rows.forEach(item => {
+            const tr = document.createElement('tr');
+            let tagClass = item.type === 'uc' ? 'tag-uc' : (item.type === 'both' ? 'tag-both' : 'tag-inner');
+            tr.innerHTML = `<td><b>${item.who}</b></td><td>${item.when}</td><td><span class="tag-place ${tagClass}">${item.where}</span></td>`;
+            programTableBody.appendChild(tr);
+        });
+        programTableContainer.classList.add('active');
+        resizeTrainer();
+    });
+
+    roleSelect.addEventListener('change', (e) => {
+        const rows = roleData[e.target.value];
+        roleTableBody.innerHTML = '';
+        rows.forEach(item => {
+            const tr = document.createElement('tr');
+            let tagClass = item.type === 'uc' ? 'tag-uc' : (item.type === 'both' ? 'tag-both' : 'tag-inner');
+            tr.innerHTML = `<td><b>${item.what}</b></td><td>${item.when}</td><td><span class="tag-place ${tagClass}">${item.where}</span></td>`;
+            roleTableBody.appendChild(tr);
+        });
+        roleTableContainer.classList.add('active');
+        resizeTrainer();
+    });
+
+    // --- Исправленный ресайзер ---
+    const scalerWrapper = document.getElementById('scalerWrapper');
+    const baseWidth = 900;
+
+    function resizeTrainer() {
+        const windowWidth = window.innerWidth;
+        // Расчет масштаба исключительно по ширине экрана с запасом (90% от ширины)
+        const scale = Math.min((windowWidth * 0.90) / baseWidth, 1.2);
+        
+        scalerWrapper.style.transform = `scale(${scale})`;
+    }
+
+    window.addEventListener('resize', resizeTrainer);
+    window.addEventListener('DOMContentLoaded', resizeTrainer);
+</script>
+
+</body>
+</html>
