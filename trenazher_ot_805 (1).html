@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Тренажёр-проверка: обучение безопасным методам работ (ПП РФ № 805 от 30.06.2026)</title>
+<style>
+  :root{
+    --ink:#132038; --muted:#5b6c88; --line:#dbe3ef;
+    --accent:#1e63d0; --accent-soft:#e8f0fe;
+    --ok:#0f8a5f; --ok-soft:#e6f6ef;
+    --bad:#c62828; --bad-soft:#fdecec;
+    --paper:linear-gradient(160deg,#f5f8fd 0%,#eaf0fa 100%);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;background:#eef3fa;}
+  body{
+    font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;color:var(--ink);
+    overflow:hidden;display:block;
+  }
+  /* ---- Хост: 100vw, максимум 600px, фон совпадает со сценой — тёмных полей нет ---- */
+  #host{
+    position:relative;width:100vw;height:600px;max-height:600px;min-height:220px;
+    overflow:hidden;background:var(--paper);
+  }
+  #stage{
+    position:absolute;top:0;left:0;transform-origin:top left;background:var(--paper);
+    display:flex;flex-direction:column;padding:12px 18px 10px;overflow:hidden;
+  }
+
+  h1,.h{font-size:22px;line-height:1.2;font-weight:700;}
+  .sub{font-size:20px;line-height:1.25;font-weight:600;}
+  body,p,li,button,span,div,label{font-size:18px;line-height:1.32;}
+
+  /* ---- Шапка ---- */
+  header{display:flex;align-items:center;gap:12px;flex:0 0 auto;}
+  .logo{width:40px;height:40px;border-radius:11px;background:var(--accent);color:#fff;flex:0 0 auto;
+        display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;}
+  .hgroup{flex:1 1 auto;min-width:0;}
+  .hgroup .h{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .pill{flex:0 0 auto;background:#fff;border:2px solid var(--line);border-radius:11px;padding:4px 13px;text-align:center;}
+  .pill b{font-size:20px;color:var(--accent);}
+  .pill span{font-size:18px;color:var(--muted);}
+
+  .pbar{height:8px;background:#fff;border:1px solid var(--line);border-radius:6px;margin:9px 0 10px;overflow:hidden;flex:0 0 auto;}
+  .pbar i{display:block;height:100%;background:var(--accent);width:0;transition:width .35s;}
+
+  main{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;gap:9px;}
+
+  .card{background:#fff;border:2px solid var(--line);border-radius:14px;padding:13px 17px;
+        flex:1 1 auto;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:10px;overflow:hidden;}
+  .meta{font-size:18px;color:var(--muted);display:flex;gap:9px;align-items:center;flex-wrap:wrap;}
+  .chip{background:var(--accent-soft);color:var(--accent);border-radius:7px;padding:1px 10px;font-weight:600;}
+  .ask{font-size:20px;font-weight:600;}
+
+  /* ---- Тип 1: найди ошибку ---- */
+  .sent{font-size:18px;line-height:1.62;}
+  .frag{border-bottom:2px dashed #b9c7dd;border-radius:5px;padding:1px 3px;cursor:pointer;transition:.13s;}
+  .frag:hover{background:var(--accent-soft);border-color:var(--accent);}
+  .frag.pick-bad{background:var(--bad-soft);border:2px solid var(--bad);border-radius:6px;color:#8f1d1d;font-weight:600;}
+  .frag.pick-ok{background:var(--ok-soft);border:2px solid var(--ok);border-radius:6px;color:#0c5c41;font-weight:600;}
+  .frag.reveal{background:var(--ok-soft);border:2px solid var(--ok);border-radius:6px;font-weight:600;}
+  .frag.locked{cursor:default;border-bottom-color:transparent;}
+  .fix{font-size:18px;background:var(--ok-soft);border:1px solid var(--ok);border-radius:9px;padding:5px 11px;color:#0c5c41;}
+
+  /* ---- Тип 2: восстанови фразу ---- */
+  .phr{font-size:18px;line-height:1.85;}
+  .gap{display:inline-flex;align-items:center;justify-content:center;min-width:88px;height:30px;padding:0 9px;
+       border:2px dashed var(--accent);border-radius:8px;background:var(--accent-soft);color:var(--accent);
+       font-weight:600;vertical-align:middle;cursor:pointer;}
+  .gap.filled{border-style:solid;background:#fff;color:var(--ink);}
+  .gap.sel{box-shadow:0 0 0 3px rgba(30,99,208,.22);}
+  .gap.good{border-color:var(--ok);background:var(--ok-soft);color:#0c5c41;}
+  .gap.bad{border-color:var(--bad);background:var(--bad-soft);color:#8f1d1d;}
+  .bank{display:flex;flex-wrap:wrap;gap:7px;}
+  .word{border:2px solid var(--line);background:#fff;border-radius:9px;padding:4px 13px;cursor:pointer;font-size:18px;transition:.13s;}
+  .word:hover{border-color:var(--accent);background:var(--accent-soft);}
+  .word.used{opacity:.32;cursor:default;}
+  .word[disabled]{cursor:default;}
+
+  /* ---- Тип 3: вопрос ---- */
+  .opts{display:grid;gap:7px;}
+  .opts.two{grid-template-columns:1fr 1fr;}
+  .opt{border:2px solid var(--line);border-radius:11px;background:#fff;padding:6px 12px;cursor:pointer;
+       text-align:left;display:flex;gap:9px;align-items:flex-start;font-size:18px;transition:.13s;}
+  .opt kbd{flex:0 0 auto;width:25px;height:25px;border-radius:7px;background:var(--line);color:#fff;
+           display:flex;align-items:center;justify-content:center;font-family:inherit;font-size:18px;font-weight:700;}
+  .opt:hover{border-color:var(--accent);background:var(--accent-soft);}
+  .opt.right{border-color:var(--ok);background:var(--ok-soft);} .opt.right kbd{background:var(--ok);}
+  .opt.wrong{border-color:var(--bad);background:var(--bad-soft);} .opt.wrong kbd{background:var(--bad);}
+  .opt[disabled]{cursor:default;}
+
+  .fb{border-radius:10px;padding:6px 12px;font-size:18px;min-height:36px;display:flex;align-items:center;flex:0 0 auto;}
+  .fb.idle{background:#f2f6fc;color:var(--muted);border:1px dashed var(--line);}
+  .fb.ok{background:var(--ok-soft);color:#0c5c41;border:1px solid var(--ok);}
+  .fb.no{background:var(--bad-soft);color:#8f1d1d;border:1px solid var(--bad);}
+
+  /* ---- Итоги ---- */
+  #done{display:none;flex:1 1 auto;min-height:0;gap:18px;align-items:center;justify-content:center;}
+  #done.on{display:flex;}
+  .ring{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:4px;}
+  .ring svg{width:172px;height:172px;}
+  .ring .verdict{font-size:20px;font-weight:600;}
+  .bars{flex:0 1 520px;display:flex;flex-direction:column;gap:8px;}
+  .bar{background:#fff;border:2px solid var(--line);border-radius:11px;padding:7px 12px;}
+  .bar .row{display:flex;justify-content:space-between;font-size:18px;margin-bottom:4px;}
+  .track{height:9px;background:var(--line);border-radius:5px;overflow:hidden;}
+  .track i{display:block;height:100%;background:var(--accent);width:0;transition:width .6s;}
+
+  footer{display:flex;align-items:center;gap:9px;padding-top:9px;border-top:2px solid var(--line);margin-top:9px;flex:0 0 auto;}
+  .nav{border:2px solid var(--accent);background:var(--accent);color:#fff;border-radius:11px;
+       padding:7px 17px;font-size:18px;font-weight:600;cursor:pointer;white-space:nowrap;}
+  .nav.ghost{background:#fff;color:var(--accent);}
+  .nav[disabled]{opacity:.4;cursor:default;}
+  .foot{margin-left:auto;font-size:18px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+  #resizer{position:absolute;right:0;bottom:0;width:24px;height:24px;cursor:nwse-resize;z-index:30;
+    background:linear-gradient(135deg,transparent 42%,var(--accent) 42%,var(--accent) 54%,transparent 54%,
+               transparent 66%,var(--accent) 66%,var(--accent) 78%,transparent 78%);}
+  #sizetag{position:absolute;right:28px;bottom:3px;z-index:30;background:rgba(15,27,45,.8);color:#fff;
+    border-radius:7px;padding:1px 9px;font-size:18px;pointer-events:none;opacity:0;transition:opacity .2s;}
+  #sizetag.show{opacity:1;}
+</style>
+</head>
+<body>
+<div id="host">
+  <div id="stage">
+    <header>
+      <div class="logo">ОТ</div>
+      <div class="hgroup">
+        <div class="h" id="hTitle">Проверочный тренажёр: безопасные методы и приёмы выполнения работ</div>
+      </div>
+      <div class="pill"><b id="scoreVal">0 / 20</b> <span>баллов</span></div>
+    </header>
+    <div class="pbar"><i id="pbar"></i></div>
+
+    <main id="taskArea">
+      <div class="card" id="card">
+        <div class="meta" id="meta"></div>
+        <div class="ask" id="ask"></div>
+        <div id="body"></div>
+      </div>
+      <div class="fb idle" id="fb"></div>
+    </main>
+
+    <div id="done">
+      <div class="ring">
+        <svg viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="52" fill="none" stroke="#dbe3ef" stroke-width="13"></circle>
+          <circle id="ringFill" cx="60" cy="60" r="52" fill="none" stroke="#1e63d0" stroke-width="13"
+                  stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="326.7" transform="rotate(-90 60 60)"></circle>
+          <text id="ringTxt" x="60" y="68" text-anchor="middle" font-size="26" font-weight="700" fill="#132038">0%</text>
+        </svg>
+        <div class="verdict" id="verdict"></div>
+      </div>
+      <div class="bars">
+        <div class="bar"><div class="row"><span>Найди ошибку</span><b id="r1">0 / 7</b></div><div class="track"><i id="f1"></i></div></div>
+        <div class="bar"><div class="row"><span>Восстанови фразу</span><b id="r2">0 / 6</b></div><div class="track"><i id="f2"></i></div></div>
+        <div class="bar"><div class="row"><span>Ответь на вопрос</span><b id="r3">0 / 7</b></div><div class="track"><i id="f3"></i></div></div>
+        <div class="bar" style="border-color:#1e63d0;background:#f7faff;">
+          <div class="row"><span class="sub">Итог</span><b class="sub" id="rAll" style="color:#1e63d0;">0 / 20</b></div>
+          <div id="advice" style="color:#5b6c88;"></div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <button class="nav ghost" id="btnPrev">← Назад</button>
+      <button class="nav" id="btnNext">Далее →</button>
+      <button class="nav ghost" id="btnReset">Заново ⟲</button>
+      <div class="foot" id="foot"></div>
+    </footer>
+  </div>
+  <div id="sizetag"></div>
+  <div id="resizer" title="Потяните, чтобы изменить размер"></div>
+</div>
+
+<script>
+/* ============ Масштабирование: сцена всегда заполняет хост, полей нет ============ */
+const BASE_W = 1040, BASE_H = 552;
+const host = document.getElementById('host'), stage = document.getElementById('stage'), sizetag = document.getElementById('sizetag');
+function fit(){
+  const w = host.clientWidth, h = host.clientHeight;
+  const k = Math.min(1, w / BASE_W, h / BASE_H);
+  const sw = w / k, sh = Math.min(h / k, 880);
+  stage.style.width = sw + 'px';
+  stage.style.height = sh + 'px';
+  stage.style.transform = 'scale(' + k + ') translateY(' + ((h / k - sh) / 2) + 'px)';
+}
+new ResizeObserver(fit).observe(host);
+addEventListener('resize', fit);
+
+/* ============ Встроенный ресайзер ============ */
+(function(){
+  const rz = document.getElementById('resizer');
+  let d=false,sx=0,sy=0,sw=0,sh=0,t=null;
+  const show=()=>{sizetag.textContent=Math.round(host.clientWidth)+' × '+Math.round(host.clientHeight)+' px';
+    sizetag.classList.add('show');clearTimeout(t);t=setTimeout(()=>sizetag.classList.remove('show'),1100);};
+  const st=e=>{d=true;const p=e.touches?e.touches[0]:e;sx=p.clientX;sy=p.clientY;sw=host.clientWidth;sh=host.clientHeight;
+    document.body.style.userSelect='none';e.preventDefault();};
+  const mv=e=>{if(!d)return;const p=e.touches?e.touches[0]:e;
+    host.style.width=Math.max(340,Math.min(innerWidth,sw+p.clientX-sx))+'px';
+    host.style.height=Math.max(220,Math.min(600,sh+p.clientY-sy))+'px';fit();show();e.preventDefault();};
+  const en=()=>{d=false;document.body.style.userSelect='';};
+  rz.addEventListener('mousedown',st); rz.addEventListener('touchstart',st,{passive:false});
+  addEventListener('mousemove',mv); addEventListener('touchmove',mv,{passive:false});
+  addEventListener('mouseup',en); addEventListener('touchend',en);
+  rz.addEventListener('dblclick',()=>{host.style.width='100vw';host.style.height='600px';fit();show();});
+})();
+
+/* ==================== ЗАДАНИЯ ==================== */
+/* type:'err'  — найди ошибочный фрагмент (bad — индекс неверного)
+   type:'gap'  — восстанови фразу (parts + слоты)
+   type:'q'    — ответь на вопрос                                        */
+const TASKS = [
+/* ---------- НАЙДИ ОШИБКУ (7) ---------- */
+{type:'err',ask:'Найдите в формулировке одну ошибку — кликните по неверному фрагменту.',
+ parts:['Для программы «Б» устанавливают продолжительность обучения ','не менее 16 часов',', а практические занятия должны занимать ','не менее 50 процентов',' общего времени обучения.'],
+ idx:[1,3], bad:3, fix:'Верно: практика — не менее 25 % общего времени обучения. 50 % практики требуется только для программ по использованию СИЗ.'},
+
+{type:'err',ask:'Найдите ошибку в описании порядка, действующего с 31 августа 2026 года.',
+ parts:['Плановое обучение по программе «В» для работ повышенной опасности проводится ','не реже одного раза в год',', если специальные нормативные акты ','не устанавливают иную периодичность','.'],
+ idx:[1,3], bad:1, fix:'Верно: не реже одного раза в 3 года. Периодичность увеличена п. 22 ПП РФ № 805.'},
+
+{type:'err',ask:'Одно из условий сформулировано неверно — найдите его.',
+ parts:['Обучение по правилам по охране труда официально приравняли к обучению по ','программе «Б»',': достаточно оформить протокол и внести запись ','в реестр Минтруда','.'],
+ idx:[1,3], bad:1, fix:'Верно: приравняли к программе «В» (п. 60 новой редакции Правил № 2464). Дублировать два вида обучения не нужно.'},
+
+{type:'err',ask:'Найдите ошибку в требованиях к формату занятий.',
+ parts:['Теоретическую часть обучения ','можно проводить дистанционно',', а практику по первой помощи, СИЗ и занятия на полигонах ','тоже допускается закрывать дистанционно','.'],
+ idx:[1,3], bad:3, fix:'Верно: такая практика проводится только очно. Дистанционно можно давать лишь теорию.'},
+
+{type:'err',ask:'Найдите неверное числовое значение.',
+ parts:['Внеплановое обучение по использованию СИЗ организуют в течение ','30 календарных дней',' со дня актуализации программы, а плановое — не реже ','одного раза в 3 года','.'],
+ idx:[1,3], bad:1, fix:'Верно: 60 календарных дней со дня актуализации программы обучения по СИЗ.'},
+
+{type:'err',ask:'Найдите ошибку в утверждении о сроках.',
+ parts:['Поправки вступают в силу ','31 августа 2026 года',', при этом срок действия самих Правил № 2464 продлили ','до 1 сентября 2028 года','.'],
+ idx:[1,3], bad:3, fix:'Верно: Правила № 2464 продлены до 1 сентября 2032 года.'},
+
+{type:'err',ask:'Найдите ошибку в требованиях к разработке программ.',
+ parts:['При обучении внутри организации программу «Б» разрабатывают ','отдельно для каждой профессии и должности',', а универсальные программы ','допускаются для любого работодателя','.'],
+ idx:[1,3], bad:3, fix:'Верно: универсальные программы допускаются только для учебных центров. Внутри компании ГИТ строго штрафует за общую программу.'},
+
+/* ---------- ВОССТАНОВИ ФРАЗУ (6) ---------- */
+{type:'gap',ask:'Восстановите формулировку: подставьте пропущенные значения.',
+ parts:['Программу «Б» разрабатывают на основе примерных перечней тем приложения № ',0,' к Правилам № 2464, а продолжительность обучения устанавливают не менее ',1,' часов.'],
+ answers:['3','16'], bank:['3','16','2','24','50','60'],
+ fix:'Приложение № 3 к Правилам № 2464 (в новой редакции ПП № 805), минимум — 16 часов.'},
+
+{type:'gap',ask:'Восстановите норму о работах повышенной опасности.',
+ parts:['По Примерному положению о СУОТ существует ',0,' работ повышенной опасности, но в реестр Минтруда сейчас можно внести данные только по ',1,' программам.'],
+ answers:['76','24'], bank:['76','24','46','16','34','60'],
+ fix:'76 работ по СУОТ, 24 программы в реестре. По работам вне реестра обучать всё равно обязательно.'},
+
+{type:'gap',ask:'Восстановите периодичность инструктажа.',
+ parts:['Работникам, впервые начавшим трудовую деятельность и допущенным к работам повышенной опасности, повторный инструктаж проводят не реже 1 раза в ',0,' месяца в течение первого года, далее — не реже 1 раза в ',1,' месяцев.'],
+ answers:['3','6'], bank:['3','6','12','1','2','9'],
+ fix:'Первый год — раз в 3 месяца, затем общая периодичность — раз в 6 месяцев.'},
+
+{type:'gap',ask:'Восстановите условие освобождения от повторного обучения.',
+ parts:['При оформлении трудового договора на ',0,' повторное обучение и проверка знания не требуются, если сохраняются условия труда и ',1,'.'],
+ answers:['внутреннее совместительство','профессиональные риски'],
+ bank:['внутреннее совместительство','профессиональные риски','внешнее совместительство','размер оплаты труда'],
+ fix:'Новая редакция п. 7 Правил № 2464: условия труда и профриски должны сохраняться.'},
+
+{type:'gap',ask:'Восстановите требование к практической части программ.',
+ parts:['Практические занятия по программам «Б» и «В» должны занимать не менее ',0,' % общего времени обучения и проводиться с применением ',1,'.'],
+ answers:['25','технических средств обучения и наглядных пособий'],
+ bank:['25','50','технических средств обучения и наглядных пособий','только дистанционных технологий'],
+ fix:'Не менее 25 % практики, с применением технических средств обучения и наглядных пособий.'},
+
+{type:'gap',ask:'Восстановите порядок оформления результатов проверки знания.',
+ parts:['Регистрационный номер записи указывают в ',0,' либо прикладывают выписку из реестра обученных лиц, подписанную электронной подписью через ',1,'.'],
+ answers:['протоколе','ФГИС СОУТ'],
+ bank:['протоколе','ФГИС СОУТ','журнале инструктажей','личном кабинете ГИТ'],
+ fix:'П. 29 ПП № 805: номер в протоколе либо подписанная ЭП выписка из реестра как приложение к протоколу.'},
+
+/* ---------- ОТВЕТЬ НА ВОПРОС (7) ---------- */
+{type:'q',ask:'Слесаря приняли на работу с вредными условиями труда по результатам СОУТ. По какой программе его обучают и сколько часов минимум?',
+ o:['«Б», не менее 16 часов','«В», не менее 16 часов','«А», не менее 8 часов','«Б», продолжительность на усмотрение работодателя'],
+ c:0, fix:'Вредные и опасные производственные факторы — программа «Б», минимум 16 часов.'},
+
+{type:'q',ask:'Работника обучили работам в замкнутых пространствах по правилам по охране труда и присвоили группу. Что делать дальше?',
+ o:['Оформить протокол и внести запись в реестр — отдельное обучение по «В» не нужно',
+    'Дополнительно обучить по программе «В» и оформить второй протокол',
+    'Дополнительно обучить по программе «Б»',
+    'Повторить обучение через 6 месяцев'],
+ c:0, fix:'П. 60 новой редакции: обучение по ПОТ приравнено к программе «В», дублировать не нужно.'},
+
+{type:'q',ask:'В организации 30 работников выполняют одинаковые функции, на их местах выявлены аналогичные источники опасности. Сколько программ «Б» нужно?',
+ o:['Одну общую программу для этой группы','Тридцать — по числу работников','Ни одной, достаточно инструктажа','Одну универсальную на всю организацию'],
+ c:0, fix:'Единая программа допустима при аналогичных трудовых функциях и аналогичных источниках опасности.'},
+
+{type:'q',ask:'Какое минимальное количество учебных часов Минтруд установил для программы «В»?',
+ o:['Не установил — работодатель определяет сам','16 часов','8 часов','40 часов'],
+ c:0, fix:'Минимум часов для «В» не установлен, но требование о 25 % практики действует.'},
+
+{type:'q',ask:'Частное агентство занятости направило работника в другую организацию. Кто проводит ему инструктажи?',
+ o:['Принимающая сторона','Само агентство занятости','Государственная инспекция труда','Учебный центр по договору'],
+ c:0, fix:'Инструктажи проводит лицо, к которому направлен работник.'},
+
+{type:'q',ask:'Какая минимальная продолжительность стажировки на рабочем месте действует после поправок?',
+ o:['Не менее 2 смен','Не менее 5 смен','Не менее 3 смен','Стажировка отменена'],
+ c:0, fix:'Норму о 5 сменах в итоговый текст ПП № 805 не включили — осталось не менее 2 смен.'},
+
+{type:'q',ask:'Работник переведён на другую должность, условия труда и профриски прежние. Что требуется?',
+ o:['Ничего: повторное обучение и проверка знания не нужны','Полное повторное обучение по «Б»','Только внеплановый инструктаж и новый протокол','Обучение по «А», «Б» и «В»'],
+ c:0, fix:'Освобождение действует при сохранении условий труда, источников опасности, профрисков и характера работы.'}
+];
+
+const GROUPS = {err:[0,7], gap:[7,13], q:[13,20]};
+const LET = ['А','Б','В','Г'];
+const $ = id => document.getElementById(id);
+const shuf = n => {const a=[...Array(n).keys()];for(let i=n-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;};
+const ORD = TASKS.map(t => t.type==='q' ? shuf(t.o.length) : null);
+const BANK = TASKS.map(t => t.type==='gap' ? shuf(t.bank.length) : null);
+
+let i = 0, finished = false;
+let res = TASKS.map(()=>null);              // true / false / null
+let state = TASKS.map(t => t.type==='gap' ? {slots:t.answers.map(()=>null), sel:0} : {});
+
+const TITLE = {err:'Найди ошибку', gap:'Восстанови фразу', q:'Ответь на вопрос'};
+
+function score(a,b){let s=0;for(let k=a;k<b;k++) if(res[k]===true) s++; return s;}
+function total(){return score(0,TASKS.length);}
+
+function render(){
+  if(finished){ renderDone(); return; }
+  $('done').classList.remove('on'); $('taskArea').style.display='flex';
+  const t = TASKS[i], st = state[i], done = res[i]!==null;
+  $('meta').innerHTML = '<span class="chip">'+TITLE[t.type]+'</span> Задание '+(i+1)+' из '+TASKS.length;
+  $('ask').textContent = t.ask;
+  const box = $('body'); box.innerHTML='';
+
+  if(t.type==='err'){
+    const p = document.createElement('div'); p.className='sent';
+    t.parts.forEach((frag,pi)=>{
+      if(t.idx.includes(pi)){
+        const s=document.createElement('span'); s.className='frag'; s.textContent=frag;
+        if(done){
+          s.classList.add('locked');
+          if(pi===t.bad) s.classList.add(res[i]?'pick-ok':'pick-bad');
+        } else s.onclick=()=>{res[i]=(pi===t.bad); render(); sync();};
+        p.appendChild(s);
+      } else p.appendChild(document.createTextNode(frag));
+    });
+    box.appendChild(p);
+    if(done){const f=document.createElement('div');f.className='fix';f.style.marginTop='9px';f.textContent=t.fix;box.appendChild(f);}
+  }
+
+  if(t.type==='gap'){
+    const p=document.createElement('div'); p.className='phr';
+    t.parts.forEach(seg=>{
+      if(typeof seg==='number'){
+        const g=document.createElement('span'); g.className='gap';
+        const v=st.slots[seg];
+        g.textContent = v===null ? '_____' : v;
+        if(v!==null) g.classList.add('filled');
+        if(!done && st.sel===seg) g.classList.add('sel');
+        if(done) g.classList.add(v===t.answers[seg]?'good':'bad');
+        if(!done) g.onclick=()=>{ if(st.slots[seg]!==null){st.slots[seg]=null;} st.sel=seg; render(); sync(); };
+        p.appendChild(g);
+      } else p.appendChild(document.createTextNode(seg));
+    });
+    box.appendChild(p);
+    const bank=document.createElement('div'); bank.className='bank'; bank.style.marginTop='10px';
+    BANK[i].forEach(bi=>{
+      const w=t.bank[bi]; const btn=document.createElement('button'); btn.className='word'; btn.textContent=w;
+      const used = st.slots.includes(w);
+      if(used||done){btn.classList.add('used'); btn.disabled=true;}
+      else btn.onclick=()=>{
+        let s = st.sel; if(st.slots[s]!==null){ const e=st.slots.indexOf(null); s = e===-1?s:e; }
+        st.slots[s]=w;
+        const nx=st.slots.indexOf(null); st.sel = nx===-1?s:nx;
+        if(!st.slots.includes(null)) res[i]=st.slots.every((v,k)=>v===t.answers[k]);
+        render(); sync();
+      };
+      bank.appendChild(btn);
+    });
+    box.appendChild(bank);
+    if(done){const f=document.createElement('div');f.className='fix';f.style.marginTop='9px';f.textContent=t.fix;box.appendChild(f);}
+  }
+
+  if(t.type==='q'){
+    const g=document.createElement('div');
+    const long=t.o.some(x=>x.length>40); g.className='opts'+(long?'':' two');
+    ORD[i].forEach((oi,pos)=>{
+      const b=document.createElement('button'); b.className='opt';
+      b.innerHTML='<kbd>'+LET[pos]+'</kbd><span>'+t.o[oi]+'</span>';
+      if(done){ b.disabled=true;
+        if(oi===t.c) b.classList.add('right');
+        else if(st.pick===oi) b.classList.add('wrong');
+      } else b.onclick=()=>{ st.pick=oi; res[i]=(oi===t.c); render(); sync(); };
+      g.appendChild(b);
+    });
+    box.appendChild(g);
+  }
+
+  const fb=$('fb');
+  if(done){
+    fb.className='fb '+(res[i]?'ok':'no');
+    fb.textContent = res[i] ? '✓ Верно.' + (t.type==='q' ? ' '+t.fix : '')
+                            : (t.type==='q' ? '✗ Неверно. Правильно: «'+t.o[t.c]+'». '+t.fix
+                               : t.type==='gap' ? '✗ Есть неточности. '+t.fix
+                               : '✗ Ошибка не в этом фрагменте. '+t.fix);
+  } else {
+    fb.className='fb idle';
+    fb.textContent = t.type==='err' ? 'Кликните по фрагменту, в котором допущена ошибка.'
+                   : t.type==='gap' ? 'Выберите слова из списка и подставьте их в пропуски. Клик по заполненному пропуску очищает его.'
+                   : 'Выберите один вариант ответа.';
+  }
+  $('pbar').style.width = (res.filter(x=>x!==null).length / TASKS.length * 100) + '%';
+  sync();
+}
+
+function renderDone(){
+  $('taskArea').style.display='none'; $('done').classList.add('on');
+  const s1=score(0,7), s2=score(7,13), s3=score(13,20), all=s1+s2+s3, pct=Math.round(all/20*100);
+  $('r1').textContent=s1+' / 7'; $('f1').style.width=(s1/7*100)+'%';
+  $('r2').textContent=s2+' / 6'; $('f2').style.width=(s2/6*100)+'%';
+  $('r3').textContent=s3+' / 7'; $('f3').style.width=(s3/7*100)+'%';
+  $('rAll').textContent=all+' / 20';
+  $('ringFill').style.strokeDashoffset = 326.7*(1-pct/100);
+  $('ringFill').setAttribute('stroke', pct>=85?'#0f8a5f':pct>=70?'#1e63d0':'#c62828');
+  $('ringTxt').textContent=pct+'%';
+  $('verdict').textContent = pct>=85?'Отлично — материал усвоен':pct>=70?'Зачёт — есть пробелы':'Незачёт — нужно повторить';
+  $('advice').textContent = pct>=85?'Проверка пройдена: знание новой редакции подтверждено.'
+    : pct>=70?'Проходной балл набран. Разберите задания, где были ошибки.'
+    : 'Проходной результат — 70 %. Пройдите проверку повторно.';
+  $('pbar').style.width='100%';
+  sync();
+}
+
+function sync(){
+  $('scoreVal').textContent = total()+' / 20';
+  $('btnPrev').disabled = finished ? false : (i===0);
+  const answered = !finished && res[i]!==null;
+  $('btnNext').disabled = finished ? true : !answered;
+  $('btnNext').textContent = finished ? 'Готово' : (i===TASKS.length-1 ? 'Показать итог →' : 'Далее →');
+  $('foot').textContent = finished ? 'ПП РФ от 30.06.2026 № 805 · в силе с 31.08.2026'
+        : 'Отвечено: '+res.filter(x=>x!==null).length+' из '+TASKS.length+' · ПП РФ от 30.06.2026 № 805';
+}
+
+$('btnNext').onclick=()=>{ if(finished) return;
+  if(i===TASKS.length-1){ finished=true; renderDone(); } else { i++; render(); } };
+$('btnPrev').onclick=()=>{ if(finished){ finished=false; i=TASKS.length-1; } else if(i>0) i--; render(); };
+$('btnReset').onclick=()=>{ i=0; finished=false; res=TASKS.map(()=>null);
+  state=TASKS.map(t=>t.type==='gap'?{slots:t.answers.map(()=>null),sel:0}:{}); render(); };
+addEventListener('keydown',e=>{ if(e.key==='ArrowRight'&&!$('btnNext').disabled)$('btnNext').click();
+  if(e.key==='ArrowLeft'&&!$('btnPrev').disabled)$('btnPrev').click(); });
+
+fit(); render();
+</script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"1954b47c125f43f8b4338b3c4f804e4f"}' crossorigin="anonymous"></script>
+</body>
+</html>
