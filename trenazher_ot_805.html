@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Тренажёр: Обучение безопасным методам и приёмам выполнения работ (ПП РФ № 805 от 30.06.2026)</title>
+<style>
+  :root{
+    --bg:#0f1b2d;
+    --panel:#ffffff;
+    --ink:#132038;
+    --muted:#5b6c88;
+    --line:#dbe3ef;
+    --accent:#1e63d0;
+    --accent-soft:#e8f0fe;
+    --b:#0f8a5f;
+    --b-soft:#e6f6ef;
+    --v:#c2410c;
+    --v-soft:#fdeee4;
+    --ok:#0f8a5f;
+    --bad:#c62828;
+    --warn:#b7791f;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{
+    background:linear-gradient(160deg,#0f1b2d 0%,#1b2f4d 100%);
+    font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    color:var(--ink);
+    overflow:hidden;
+    display:flex;align-items:flex-start;justify-content:center;
+  }
+
+  /* ---------- ХОСТ: 100vw, максимум 600px по высоте, без скроллов ---------- */
+  #host{
+    position:relative;
+    width:100vw;
+    height:600px;
+    max-height:600px;
+    min-height:220px;
+    overflow:hidden;
+    background:#0b1424;
+  }
+  /* Область масштабирования */
+  #viewport{position:absolute;inset:0;overflow:hidden;}
+  #stage{
+    position:absolute;top:0;left:0;
+    width:1200px;height:600px;
+    transform-origin:top left;
+    background:linear-gradient(160deg,#f5f8fd 0%,#eaf0fa 100%);
+    display:flex;flex-direction:column;
+    padding:14px 20px 12px;
+  }
+
+  /* ---------- Типографика ---------- */
+  h1,.h{font-size:22px;line-height:1.22;font-weight:700;}
+  h2,.sub{font-size:20px;line-height:1.25;font-weight:600;}
+  body,.txt,p,li,button,span,div{font-size:18px;line-height:1.34;}
+  .small{font-size:18px;}
+
+  /* ---------- Шапка ---------- */
+  header{display:flex;align-items:center;gap:14px;padding-bottom:10px;border-bottom:2px solid var(--line);}
+  .logo{
+    width:44px;height:44px;border-radius:12px;flex:0 0 auto;
+    background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;
+    font-size:20px;font-weight:700;
+  }
+  .hgroup{flex:1 1 auto;min-width:0;}
+  .hgroup .h{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .hgroup .cap{font-size:18px;color:var(--muted);}
+  .scorebox{
+    flex:0 0 auto;background:#fff;border:2px solid var(--line);border-radius:12px;
+    padding:6px 14px;text-align:center;
+  }
+  .scorebox b{font-size:20px;color:var(--accent);}
+  .scorebox span{font-size:18px;color:var(--muted);display:block;}
+
+  /* ---------- Прогресс по модулям ---------- */
+  .steps{display:flex;gap:8px;margin:10px 0 8px;}
+  .step{
+    flex:1;background:#fff;border:2px solid var(--line);border-radius:10px;
+    padding:5px 10px;font-size:18px;color:var(--muted);
+    display:flex;align-items:center;gap:8px;overflow:hidden;white-space:nowrap;
+  }
+  .step i{width:22px;height:22px;border-radius:50%;background:var(--line);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-style:normal;font-size:18px;flex:0 0 auto;}
+  .step.active{border-color:var(--accent);color:var(--accent);font-weight:600;background:var(--accent-soft);}
+  .step.active i{background:var(--accent);}
+  .step.done{border-color:var(--ok);color:var(--ok);}
+  .step.done i{background:var(--ok);}
+
+  /* ---------- Основная область ---------- */
+  main{flex:1 1 auto;position:relative;overflow:hidden;}
+  .screen{position:absolute;inset:0;display:none;flex-direction:column;}
+  .screen.on{display:flex;}
+
+  /* ---------- Старт ---------- */
+  .start{display:grid;grid-template-columns:1.1fr 1fr;gap:16px;height:100%;}
+  .card{background:#fff;border:2px solid var(--line);border-radius:14px;padding:12px 16px;overflow:hidden;}
+  .card .sub{margin-bottom:8px;color:var(--ink);}
+  ul.tight{list-style:none;}
+  ul.tight li{position:relative;padding-left:22px;margin-bottom:6px;}
+  ul.tight li:before{content:"▸";position:absolute;left:2px;color:var(--accent);font-weight:700;}
+  .badge{display:inline-block;background:var(--accent-soft);color:var(--accent);border-radius:8px;
+    padding:2px 10px;font-weight:600;font-size:18px;margin-right:6px;}
+  .badge.b{background:var(--b-soft);color:var(--b);}
+  .badge.v{background:var(--v-soft);color:var(--v);}
+  .factgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;}
+  .fact{background:#f7faff;border:1px solid var(--line);border-radius:10px;padding:5px 10px;}
+  .fact b{display:block;font-size:20px;color:var(--accent);}
+  .fact span{font-size:18px;color:var(--muted);}
+
+  /* ---------- Карточки «Было / Стало» ---------- */
+  .flipgrid{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:1fr 1fr;gap:10px;flex:1 1 auto;min-height:0;}
+  .flip{perspective:1200px;cursor:pointer;}
+  .flip-inner{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d;}
+  .flip.turned .flip-inner{transform:rotateY(180deg);}
+  .face{
+    position:absolute;inset:0;backface-visibility:hidden;border-radius:14px;
+    border:2px solid var(--line);background:#fff;padding:8px 11px;display:flex;flex-direction:column;gap:3px;overflow:hidden;
+  }
+  .face .tag{font-size:18px;font-weight:700;color:var(--warn);}
+  .face .ttl{font-size:20px;font-weight:600;}
+  .face .body{font-size:18px;color:var(--muted);}
+  .back{transform:rotateY(180deg);background:var(--b-soft);border-color:var(--b);}
+  .back .tag{color:var(--b);}
+  .back .body{color:#1c3a2e;}
+  .hintline{font-size:18px;color:var(--muted);text-align:center;padding-top:5px;flex:0 0 auto;}
+
+  /* ---------- Сортировка Б / В ---------- */
+  .sortwrap{display:flex;flex-direction:column;height:100%;gap:9px;overflow:hidden;}
+  .qcard{background:#fff;border:2px solid var(--line);border-radius:14px;padding:12px 18px;flex:1 1 auto;min-height:0;
+    display:flex;flex-direction:column;justify-content:center;gap:9px;}
+  .qnum{font-size:18px;color:var(--muted);}
+  .qtext{font-size:20px;font-weight:600;}
+  .choices2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .bigbtn{
+    border:2px solid var(--line);border-radius:14px;background:#fff;padding:10px;cursor:pointer;
+    font-size:20px;font-weight:600;text-align:center;transition:.15s;
+  }
+  .bigbtn small{display:block;font-size:18px;font-weight:400;color:var(--muted);margin-top:1px;}
+  .bigbtn.b:hover{border-color:var(--b);background:var(--b-soft);}
+  .bigbtn.v:hover{border-color:var(--v);background:var(--v-soft);}
+  .bigbtn.right{border-color:var(--ok);background:var(--b-soft);}
+  .bigbtn.wrong{border-color:var(--bad);background:#fdecec;}
+  .bigbtn[disabled]{cursor:default;}
+
+  /* ---------- Тест ---------- */
+  .opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .opt{
+    border:2px solid var(--line);border-radius:12px;background:#fff;padding:6px 12px;cursor:pointer;
+    text-align:left;display:flex;gap:10px;align-items:flex-start;transition:.15s;font-size:18px;
+  }
+  .opt kbd{
+    flex:0 0 auto;width:26px;height:26px;border-radius:8px;background:var(--line);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-family:inherit;font-size:18px;font-weight:700;
+  }
+  .opt:hover{border-color:var(--accent);background:var(--accent-soft);}
+  .opt.right{border-color:var(--ok);background:var(--b-soft);}
+  .opt.right kbd{background:var(--ok);}
+  .opt.wrong{border-color:var(--bad);background:#fdecec;}
+  .opt.wrong kbd{background:var(--bad);}
+  .opt[disabled]{cursor:default;}
+  .opts.one{grid-template-columns:1fr;}
+
+  .fb{border-radius:10px;padding:6px 12px;font-size:18px;min-height:36px;display:flex;align-items:center;gap:8px;flex:0 0 auto;}
+  .fb.ok{background:var(--b-soft);color:#0c5c41;border:1px solid var(--ok);}
+  .fb.no{background:#fdecec;color:#8f1d1d;border:1px solid var(--bad);}
+  .fb.idle{background:#f2f6fc;color:var(--muted);border:1px dashed var(--line);}
+
+  /* ---------- Итоги ---------- */
+  .result{display:grid;grid-template-columns:0.9fr 1.1fr;gap:18px;height:100%;}
+  .ring{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;}
+  .ring svg{width:190px;height:190px;}
+  .ring .pct{font-size:22px;font-weight:700;}
+  .ring .verdict{font-size:20px;font-weight:600;text-align:center;}
+  .bars{display:flex;flex-direction:column;gap:8px;justify-content:center;}
+  .bar{background:#fff;border:2px solid var(--line);border-radius:12px;padding:8px 12px;}
+  .bar .row{display:flex;justify-content:space-between;font-size:18px;margin-bottom:5px;}
+  .track{height:10px;background:var(--line);border-radius:6px;overflow:hidden;}
+  .fill{height:100%;background:var(--accent);border-radius:6px;transition:width .6s;}
+
+  /* ---------- Навигация ---------- */
+  footer{display:flex;align-items:center;gap:10px;padding-top:10px;border-top:2px solid var(--line);margin-top:10px;}
+  .nav{
+    border:2px solid var(--accent);background:var(--accent);color:#fff;border-radius:12px;
+    padding:8px 18px;font-size:18px;font-weight:600;cursor:pointer;white-space:nowrap;
+  }
+  .nav.ghost{background:#fff;color:var(--accent);}
+  .nav[disabled]{opacity:.4;cursor:default;}
+  .spacer{flex:1;}
+  .footnote{font-size:18px;color:var(--muted);}
+
+  /* ---------- Встроенный ресайзер ---------- */
+  #resizer{
+    position:absolute;right:0;bottom:0;width:26px;height:26px;cursor:nwse-resize;z-index:30;
+    background:linear-gradient(135deg,transparent 42%,var(--accent) 42%,var(--accent) 54%,transparent 54%,
+               transparent 66%,var(--accent) 66%,var(--accent) 78%,transparent 78%);
+    border-bottom-right-radius:6px;
+  }
+  #sizetag{
+    position:absolute;right:30px;bottom:4px;z-index:30;background:rgba(15,27,45,.78);color:#fff;
+    border-radius:8px;padding:2px 9px;font-size:18px;pointer-events:none;opacity:0;transition:opacity .2s;
+  }
+  #sizetag.show{opacity:1;}
+</style>
+</head>
+<body>
+
+<div id="host">
+  <div id="viewport">
+    <div id="stage">
+
+      <header>
+        <div class="logo">ОТ</div>
+        <div class="hgroup">
+          <div class="h">Безопасные методы и приёмы выполнения работ: программы «Б» и «В»</div>
+          <div class="cap">Тренажёр по Правилам № 2464 в ред. ПП РФ от 30.06.2026 № 805 · в силе с 31.08.2026</div>
+        </div>
+        <div class="scorebox"><b id="scoreVal">0 / 24</b><span>баллов</span></div>
+      </header>
+
+      <div class="steps" id="steps">
+        <div class="step active" data-s="0"><i>1</i>Введение</div>
+        <div class="step" data-s="1"><i>2</i>Было / Стало</div>
+        <div class="step" data-s="2"><i>3</i>«Б» или «В»</div>
+        <div class="step" data-s="3"><i>4</i>Тест</div>
+        <div class="step" data-s="4"><i>5</i>Нормативы</div>
+        <div class="step" data-s="5"><i>6</i>Итоги</div>
+      </div>
+
+      <main>
+        <!-- 0. СТАРТ -->
+        <section class="screen on" id="sc0">
+          <div class="start">
+            <div class="card">
+              <div class="sub">Что отрабатываем</div>
+              <ul class="tight">
+                <li><span class="badge b">Программа Б</span>вредные и опасные производственные факторы: не менее <b>16 часов</b>, практика — от <b>25 %</b>.</li>
+                <li><span class="badge v">Программа В</span>работы повышенной опасности: минимум часов не установлен, практика — от <b>25 %</b>.</li>
+                <li>ПП № 805: <b>34 поправки</b>, в силе с <b>31.08.2026</b>; Правила № 2464 продлены до <b>01.09.2032</b>.</li>
+                <li>4 модуля практики, максимум — <b>24 балла</b>.</li>
+              </ul>
+              <div class="factgrid">
+                <div class="fact"><b>76</b><span>работ повышенной опасности по СУОТ</span></div>
+                <div class="fact"><b>24</b><span>программы вносятся в реестр Минтруда</span></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="sub">Ключевые новеллы ПП № 805</div>
+              <ul class="tight">
+                <li>Программа «В» — плановое обучение <b>1 раз в 3 года</b> вместо ежегодного.</li>
+                <li>Обучение по правилам по ОТ <b>приравнено к программе «В»</b>.</li>
+                <li>Внутренним совместителям повторное обучение не нужно при тех же условиях труда и профрисках.</li>
+                <li>Практика по ПП, СИЗ, полигонам и тренажёрам — <b>только очно</b>.</li>
+                <li>Новичкам на работах повышенной опасности инструктаж — <b>1 раз в 3 месяца</b> в первый год.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- 1. ФЛИП-КАРТОЧКИ -->
+        <section class="screen" id="sc1">
+          <div class="flipgrid" id="flipgrid"></div>
+          <div class="hintline" id="flipHint">Нажмите на карточку, чтобы увидеть новую редакцию. Открыто: 0 из 6</div>
+        </section>
+
+        <!-- 2. Б или В -->
+        <section class="screen" id="sc2">
+          <div class="sortwrap">
+            <div class="qcard">
+              <div class="qnum" id="sortNum"></div>
+              <div class="qtext" id="sortText"></div>
+              <div class="choices2">
+                <button class="bigbtn b" data-a="Б">Программа «Б»<small>вредные и опасные производственные факторы</small></button>
+                <button class="bigbtn v" data-a="В">Программа «В»<small>работы повышенной опасности</small></button>
+              </div>
+            </div>
+            <div class="fb idle" id="sortFb">Выберите программу, к которой относится утверждение.</div>
+          </div>
+        </section>
+
+        <!-- 3. ТЕСТ -->
+        <section class="screen" id="sc3">
+          <div class="sortwrap">
+            <div class="qcard">
+              <div class="qnum" id="quizNum"></div>
+              <div class="qtext" id="quizText"></div>
+              <div class="opts" id="quizOpts"></div>
+            </div>
+            <div class="fb idle" id="quizFb">Выберите один правильный ответ.</div>
+          </div>
+        </section>
+
+        <!-- 4. НОРМАТИВЫ -->
+        <section class="screen" id="sc4">
+          <div class="sortwrap">
+            <div class="qcard">
+              <div class="qnum" id="numNum"></div>
+              <div class="qtext" id="numText"></div>
+              <div class="opts" id="numOpts"></div>
+            </div>
+            <div class="fb idle" id="numFb">Подставьте верное значение из Правил № 2464 в редакции ПП № 805.</div>
+          </div>
+        </section>
+
+        <!-- 5. ИТОГИ -->
+        <section class="screen" id="sc5">
+          <div class="result">
+            <div class="ring">
+              <svg viewBox="0 0 120 120">
+                <circle cx="60" cy="60" r="52" fill="none" stroke="#dbe3ef" stroke-width="14"></circle>
+                <circle id="ringFill" cx="60" cy="60" r="52" fill="none" stroke="#1e63d0" stroke-width="14"
+                        stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="326.7"
+                        transform="rotate(-90 60 60)"></circle>
+                <text id="ringTxt" x="60" y="67" text-anchor="middle" font-size="26" font-weight="700" fill="#132038">0%</text>
+              </svg>
+              <div class="verdict" id="verdict">Пройдите модули тренажёра</div>
+            </div>
+            <div class="bars">
+              <div class="bar">
+                <div class="row"><span>Модуль «Б или В»</span><b id="r2">0 / 8</b></div>
+                <div class="track"><div class="fill" id="f2" style="width:0%"></div></div>
+              </div>
+              <div class="bar">
+                <div class="row"><span>Тест по ПП № 805</span><b id="r3">0 / 10</b></div>
+                <div class="track"><div class="fill" id="f3" style="width:0%"></div></div>
+              </div>
+              <div class="bar">
+                <div class="row"><span>Нормативы и сроки</span><b id="r4">0 / 6</b></div>
+                <div class="track"><div class="fill" id="f4" style="width:0%"></div></div>
+              </div>
+              <div class="bar" style="border-color:#1e63d0;background:#f7faff;">
+                <div class="row"><span class="sub" style="font-size:20px;">Итог</span><b id="rAll" style="font-size:20px;color:#1e63d0;">0 / 24</b></div>
+                <div class="small" id="advice" style="color:#5b6c88;">Проходной результат — 70 % и выше.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer>
+        <button class="nav ghost" id="btnPrev">← Назад</button>
+        <button class="nav" id="btnNext">Начать →</button>
+        <button class="nav ghost" id="btnReset">Сбросить</button>
+        <div class="spacer"></div>
+        <div class="footnote" id="foot">Источник: Правила обучения по охране труда № 2464 в ред. ПП РФ от 30.06.2026 № 805</div>
+      </footer>
+
+    </div>
+  </div>
+  <div id="sizetag"></div>
+  <div id="resizer" title="Потяните, чтобы изменить размер"></div>
+</div>
+
+<script>
+/* ================= МАСШТАБИРОВАНИЕ ПОД ЛЮБОЙ РАЗМЕР ================= */
+const DESIGN_W = 1200, DESIGN_H = 600;
+const host = document.getElementById('host');
+const stage = document.getElementById('stage');
+const sizetag = document.getElementById('sizetag');
+
+function fit(){
+  const w = host.clientWidth, h = host.clientHeight;
+  const k = Math.min(w / DESIGN_W, h / DESIGN_H);
+  stage.style.transform = 'scale(' + k + ') translate(' +
+      ((w / k - DESIGN_W) / 2) + 'px,' + ((h / k - DESIGN_H) / 2) + 'px)';
+}
+new ResizeObserver(fit).observe(host);
+window.addEventListener('resize', fit);
+fit();
+
+/* ================= ВСТРОЕННЫЙ РЕСАЙЗЕР ================= */
+(function(){
+  const rz = document.getElementById('resizer');
+  let drag = false, sx = 0, sy = 0, sw = 0, sh = 0, tmr = null;
+  const show = () => {
+    sizetag.textContent = Math.round(host.clientWidth) + ' × ' + Math.round(host.clientHeight) + ' px';
+    sizetag.classList.add('show');
+    clearTimeout(tmr); tmr = setTimeout(() => sizetag.classList.remove('show'), 1200);
+  };
+  const start = e => {
+    drag = true;
+    const p = e.touches ? e.touches[0] : e;
+    sx = p.clientX; sy = p.clientY; sw = host.clientWidth; sh = host.clientHeight;
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
+  };
+  const move = e => {
+    if(!drag) return;
+    const p = e.touches ? e.touches[0] : e;
+    const w = Math.max(360, Math.min(window.innerWidth, sw + (p.clientX - sx)));
+    const h = Math.max(220, Math.min(600, sh + (p.clientY - sy)));   /* потолок 600px соблюдается */
+    host.style.width = w + 'px';
+    host.style.height = h + 'px';
+    fit(); show();
+    e.preventDefault();
+  };
+  const end = () => { drag = false; document.body.style.userSelect = ''; };
+  rz.addEventListener('mousedown', start);
+  rz.addEventListener('touchstart', start, {passive:false});
+  window.addEventListener('mousemove', move);
+  window.addEventListener('touchmove', move, {passive:false});
+  window.addEventListener('mouseup', end);
+  window.addEventListener('touchend', end);
+  rz.addEventListener('dblclick', () => { host.style.width = '100vw'; host.style.height = '600px'; fit(); show(); });
+})();
+
+/* ================= КОНТЕНТ ТРЕНАЖЁРА ================= */
+const FLIPS = [
+  {t:'Срок действия Правил № 2464', was:'Действовали до 1 сентября 2026 года.',
+   now:'Продлены до 1 сентября 2032 года (п. 1 ПП № 805).'},
+  {t:'Периодичность программы «В»', was:'Обучение работам повышенной опасности — 1 раз в год.',
+   now:'Не реже 1 раза в 3 года (п. 22 ПП № 805).'},
+  {t:'Обучение по правилам по ОТ', was:'Дублировали: отдельно по ПОТ и отдельно по программе «В».',
+   now:'Обучение по ПОТ = программа «В» (п. 60): протокол + запись в реестре.'},
+  {t:'Внутренние совместители', was:'Обучение по программе «Б» требовалось по каждой должности.',
+   now:'Повторное обучение не нужно при тех же условиях труда и профрисках (п. 7).'},
+  {t:'Дистанционный формат', was:'Практику допускалось закрывать дистанционно.',
+   now:'Практика по ПП, СИЗ, полигонам — только очно. Теория — дистанционно.'},
+  {t:'Инструктаж новичков', was:'Общая периодичность — не реже 1 раза в 6 месяцев.',
+   now:'Новичкам на работах повышенной опасности — 1 раз в 3 месяца в первый год.'}
+];
+
+const SORT = [
+  {q:'Обучение работников, которые трудятся под воздействием вредных и (или) опасных производственных факторов.', a:'Б',
+   w:'Это классическая программа «Б» — по вредным и опасным факторам на рабочем месте.'},
+  {q:'Минимальная продолжительность обучения — не менее 16 часов.', a:'Б',
+   w:'16 часов установлены именно для программы «Б». Для «В» минимум часов Минтруд не устанавливал.'},
+  {q:'Перед разработкой нужно оформить перечень ответственных лиц и перечень самих работ.', a:'В',
+   w:'Два перечня определяют, сколько и каких программ «В» разработать.'},
+  {q:'Примерные темы берут из приложения № 3 к Правилам № 2464 (в новой редакции ПП № 805).', a:'Б',
+   w:'Приложение № 3 изложено в новой редакции п. 34 ПП № 805 — темы программы «Б».'},
+  {q:'Плановое обучение проводится не реже 1 раза в 3 года вместо ежегодного.', a:'В',
+   w:'Это изменение п. 22 ПП № 805 — новая периодичность именно для работ повышенной опасности.'},
+  {q:'Обучение по правилам по охране труда официально засчитывается вместо этой программы.', a:'В',
+   w:'Пункт 60 новой редакции: обучили работам в замкнутых пространствах и присвоили группу — отдельная программа «В» не нужна.'},
+  {q:'При обучении внутри организации программу разрабатывают отдельно для каждой профессии и должности.', a:'Б',
+   w:'Универсальные программы «Б» допускаются только для учебных центров; ГИТ строго штрафует за общие программы внутри компании.'},
+  {q:'Отдельная программа нужна на каждый вид работ — например, отдельно на огневые работы.', a:'В',
+   w:'По каждому виду работ повышенной опасности разрабатывается своя программа «В».'}
+];
+
+const QUIZ = [
+  {q:'Какой документ внёс изменения в Правила обучения по охране труда № 2464 и с какой даты они действуют?',
+   o:['Постановление Правительства РФ от 30.06.2026 № 805 — с 31 августа 2026 года',
+      'Постановление Правительства РФ от 24.12.2021 № 2464 — с 1 сентября 2026 года',
+      'Приказ Минтруда от 30.06.2026 № 805 — с 1 января 2027 года',
+      'Постановление Правительства РФ от 30.06.2026 № 805 — с 1 сентября 2032 года'],
+   c:0, w:'ПП РФ от 30.06.2026 № 805 утвердило 34 поправки, они вступают в силу 31.08.2026, а сами Правила продлены до 01.09.2032.'},
+  {q:'Какую долю времени в программах «Б» и «В» должны занимать практические занятия?',
+   o:['Не менее 25 %','Не менее 50 %','Не менее 10 %','Не менее 75 %'],
+   c:0, w:'Для программ «Б» и «В» — не менее 25 % общего времени обучения. 50 % практики требуется для программ по использованию СИЗ.'},
+  {q:'Нужно ли повторно обучать работника при оформлении внутреннего совместительства?',
+   o:['Не нужно, если сохраняются условия труда и профессиональные риски',
+      'Нужно всегда и по каждой должности отдельно',
+      'Нужно только по программе «В»',
+      'Не нужно ни при каких условиях'],
+   c:0, w:'Новая редакция п. 7 Правил № 2464 (п. 2 ПП № 805): повторное обучение и проверка знания не требуются при сохранении условий труда и профрисков.'},
+  {q:'Сколько работ повышенной опасности предусмотрено Примерным положением о СУОТ и сколько программ можно внести в реестр Минтруда?',
+   o:['76 работ, но в реестр вносятся только 24 программы',
+      '24 работы, в реестр вносятся все 24 программы',
+      '46 работ и 46 программ',
+      '76 работ и 76 программ'],
+   c:0, w:'Работ — 76; в реестр Минтруда сегодня можно внести данные только по 24 программам, но обучать по остальным всё равно обязательно.'},
+  {q:'Можно ли разработать одну программу «Б» на нескольких работников?',
+   o:['Да, если они выполняют аналогичные функции и на их местах выявлены аналогичные источники опасности',
+      'Да, любая универсальная программа допустима для работодателя',
+      'Нет, только индивидуально на каждого работника',
+      'Да, если работники трудятся в одном структурном подразделении'],
+   c:0, w:'Единая программа возможна при аналогичных трудовых функциях и аналогичных источниках опасности. Универсальные программы — прерогатива учебных центров.'},
+  {q:'Что нельзя проводить в дистанционном формате после 31.08.2026?',
+   o:['Практику по первой помощи и СИЗ, занятия на полигонах и тренажёрах',
+      'Любое обучение по охране труда',
+      'Теоретическую часть программы «Б»',
+      'Вводный инструктаж'],
+   c:0, w:'Теорию по-прежнему можно давать дистанционно, а практику по ПП, СИЗ и занятия на полигонах и тренажёрах — только очно.'},
+  {q:'Как теперь можно подтвердить регистрационный номер записи в реестре обученных лиц?',
+   o:['Указать в протоколе либо приложить выписку из реестра с электронной подписью через ФГИС СОУТ',
+      'Только записью от руки в журнале инструктажей',
+      'Только скриншотом личного кабинета работодателя',
+      'Подтверждение больше не требуется'],
+   c:0, w:'П. 29 ПП № 805: номер указывается непосредственно в протоколе либо содержится в подписанной ЭП выписке из реестра — приложении к протоколу.'},
+  {q:'Кто проводит инструктажи работникам, которых частное агентство занятости направило к другой организации?',
+   o:['Принимающая сторона — то лицо, к которому направлен работник',
+      'Частное агентство занятости как работодатель',
+      'Государственная инспекция труда',
+      'Учебный центр по договору'],
+   c:0, w:'ПП № 805 закрепило: все виды инструктажей проводит физическое или юридическое лицо, к которому направлен работник.'},
+  {q:'Какая норма из проекта НЕ вошла в итоговый текст ПП № 805?',
+   o:['Стажировка не менее 5 смен для впервые начавших трудовую деятельность',
+      'Периодичность программы «В» — 1 раз в 3 года',
+      'Освобождение внутренних совместителей от повторного обучения',
+      'Новая редакция приложения № 2 по первой помощи'],
+   c:0, w:'Требование о 5 сменах не приняли — минимальная стажировка осталась 2 смены. Не вошла и обязательная ежегодная актуализация сведений в реестре.'},
+  {q:'По каким программам должны обучаться лица, проводящие инструктажи, и члены комиссий по проверке знания?',
+   o:['Проводящие инструктажи — по программам «Б» и «В»; члены комиссии — по тем программам «В», по которым принимают экзамен',
+      'Только по программе «А»',
+      'Только по программе первой помощи',
+      'Обучение для них не предусмотрено'],
+   c:0, w:'Лица, проводящие инструктажи, осваивают программы безопасных методов работ, а члены комиссий дополнительно обучаются по «своим» программам «В».'}
+];
+
+const NUMS = [
+  {q:'Минимальная продолжительность обучения по программе «Б» — не менее ___ часов.',
+   o:['16','8','24','40'], c:0, w:'Для программы «Б» работодатель устанавливает не менее 16 часов обучения.'},
+  {q:'Плановое обучение по программе «В» после 31.08.2026 проводится не реже 1 раза в ___.',
+   o:['3 года','1 год','5 лет','6 месяцев'], c:0, w:'Периодичность увеличена с одного года до трёх лет (п. 22 ПП № 805); спец. НПА могут установить иное.'},
+  {q:'Повторный инструктаж работникам, впервые допущенным к работам повышенной опасности, в первый год — не реже 1 раза в ___.',
+   o:['3 месяца','6 месяцев','12 месяцев','1 месяц'], c:0, w:'Специальная периодичность действует первый год, далее — общая, не реже 1 раза в 6 месяцев.'},
+  {q:'Минимальная продолжительность стажировки на рабочем месте после поправок — не менее ___ смен.',
+   o:['2','5','3','10'], c:0, w:'Норму о 5 сменах в итоговый документ не включили — остаётся не менее 2 смен.'},
+  {q:'Внеплановое обучение по использованию СИЗ при актуализации программы организуют в течение ___ календарных дней.',
+   o:['60','30','14','90'], c:0, w:'60 календарных дней со дня актуализации программы; плановое обучение по СИЗ — не реже 1 раза в 3 года.'},
+  {q:'Действие Правил обучения № 2464 продлено до ___.',
+   o:['1 сентября 2032 года','1 сентября 2026 года','31 августа 2030 года','1 января 2028 года'], c:0, w:'Срок действия Правил продлён ещё на шесть лет — до 1 сентября 2032 года.'}
+];
+
+/* ================= СОСТОЯНИЕ ================= */
+const LET = ['А','Б','В','Г'];
+let screen = 0;
+let flipped = new Array(FLIPS.length).fill(false);
+let sortI = 0, sortDone = new Array(SORT.length).fill(null);
+let quizI = 0, quizDone = new Array(QUIZ.length).fill(null);
+let numI  = 0, numDone  = new Array(NUMS.length).fill(null);
+
+const $ = id => document.getElementById(id);
+const shuffleIdx = n => { const a=[...Array(n).keys()]; for(let i=n-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];} return a; };
+const ORD_Q = QUIZ.map(q => shuffleIdx(q.o.length));
+const ORD_N = NUMS.map(q => shuffleIdx(q.o.length));
+
+function score(arr){ return arr.filter(x => x === true).length; }
+function totalScore(){ return score(sortDone) + score(quizDone) + score(numDone); }
+function updScore(){ $('scoreVal').textContent = totalScore() + ' / 24'; }
+
+/* ---------- Модуль 1: карточки ---------- */
+function buildFlips(){
+  const g = $('flipgrid'); g.innerHTML = '';
+  FLIPS.forEach((f,i) => {
+    const d = document.createElement('div');
+    d.className = 'flip' + (flipped[i] ? ' turned' : '');
+    d.innerHTML =
+      '<div class="flip-inner">' +
+        '<div class="face"><div class="tag">БЫЛО</div><div class="ttl">' + f.t + '</div><div class="body">' + f.was + '</div></div>' +
+        '<div class="face back"><div class="tag">СТАЛО с 31.08.2026</div><div class="ttl">' + f.t + '</div><div class="body">' + f.now + '</div></div>' +
+      '</div>';
+    d.onclick = () => { flipped[i] = !d.classList.contains('turned'); d.classList.toggle('turned'); flipHint(); };
+    g.appendChild(d);
+  });
+  flipHint();
+}
+function flipHint(){
+  const n = flipped.filter(Boolean).length;
+  $('flipHint').textContent = n < FLIPS.length
+    ? 'Нажмите на карточку, чтобы увидеть новую редакцию. Открыто: ' + n + ' из ' + FLIPS.length
+    : 'Все шесть изменений просмотрены — переходите к практике.';
+}
+
+/* ---------- Модуль 2: Б или В ---------- */
+function renderSort(){
+  const it = SORT[sortI];
+  $('sortNum').textContent = 'Утверждение ' + (sortI + 1) + ' из ' + SORT.length + ' · распределите по программам';
+  $('sortText').textContent = it.q;
+  const btns = document.querySelectorAll('#sc2 .bigbtn');
+  const answered = sortDone[sortI] !== null;
+  btns.forEach(b => {
+    b.className = 'bigbtn ' + (b.dataset.a === 'Б' ? 'b' : 'v');
+    b.disabled = answered;
+    if(answered){
+      if(b.dataset.a === it.a) b.classList.add('right');
+      else if(!sortDone[sortI]) b.classList.add('wrong');
+    }
+  });
+  const fb = $('sortFb');
+  if(answered){
+    fb.className = 'fb ' + (sortDone[sortI] ? 'ok' : 'no');
+    fb.textContent = (sortDone[sortI] ? '✓ Верно. ' : '✗ Правильный ответ — программа «' + it.a + '». ') + it.w;
+  } else {
+    fb.className = 'fb idle';
+    fb.textContent = 'Выберите программу, к которой относится утверждение.';
+  }
+}
+document.querySelectorAll('#sc2 .bigbtn').forEach(b => {
+  b.onclick = () => {
+    if(sortDone[sortI] !== null) return;
+    sortDone[sortI] = (b.dataset.a === SORT[sortI].a);
+    renderSort(); updScore(); syncNav();
+  };
+});
+
+/* ---------- Модуль 3 и 4: вопросы с вариантами ---------- */
+function renderQ(cfg){
+  const {data, order, done, idx, elNum, elTxt, elOpts, elFb, label, onPick} = cfg;
+  const it = data[idx];
+  $(elNum).textContent = label + ' ' + (idx + 1) + ' из ' + data.length;
+  $(elTxt).textContent = it.q;
+  const box = $(elOpts); box.innerHTML = '';
+  const longOpt = it.o.some(t => t.length > 58);
+  box.className = 'opts' + (longOpt ? ' one' : '');
+  order[idx].forEach((oi, pos) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.innerHTML = '<kbd>' + LET[pos] + '</kbd><span>' + it.o[oi] + '</span>';
+    if(done[idx] !== null){
+      btn.disabled = true;
+      if(oi === it.c) btn.classList.add('right');
+      else if(!done[idx] && cfg.picked[idx] === oi) btn.classList.add('wrong');
+    } else {
+      btn.onclick = () => onPick(oi);
+    }
+    box.appendChild(btn);
+  });
+  const fb = $(elFb);
+  if(done[idx] !== null){
+    fb.className = 'fb ' + (done[idx] ? 'ok' : 'no');
+    fb.textContent = (done[idx] ? '✓ Верно. ' : '✗ Неверно. Правильно: «' + it.o[it.c] + '». ') + it.w;
+  } else {
+    fb.className = 'fb idle';
+    fb.textContent = cfg.idleText;
+  }
+}
+const quizPicked = new Array(QUIZ.length).fill(null);
+const numPicked  = new Array(NUMS.length).fill(null);
+
+function renderQuiz(){
+  renderQ({data:QUIZ, order:ORD_Q, done:quizDone, idx:quizI, picked:quizPicked,
+    elNum:'quizNum', elTxt:'quizText', elOpts:'quizOpts', elFb:'quizFb',
+    label:'Вопрос', idleText:'Выберите один правильный ответ.',
+    onPick:oi => { quizPicked[quizI]=oi; quizDone[quizI] = (oi === QUIZ[quizI].c); renderQuiz(); updScore(); syncNav(); }});
+}
+function renderNum(){
+  renderQ({data:NUMS, order:ORD_N, done:numDone, idx:numI, picked:numPicked,
+    elNum:'numNum', elTxt:'numText', elOpts:'numOpts', elFb:'numFb',
+    label:'Норматив', idleText:'Подставьте верное значение из Правил № 2464 в редакции ПП № 805.',
+    onPick:oi => { numPicked[numI]=oi; numDone[numI] = (oi === NUMS[numI].c); renderNum(); updScore(); syncNav(); }});
+}
+
+/* ---------- Итоги ---------- */
+function renderResult(){
+  const s2 = score(sortDone), s3 = score(quizDone), s4 = score(numDone);
+  const all = s2 + s3 + s4, pct = Math.round(all / 24 * 100);
+  $('r2').textContent = s2 + ' / 8';  $('f2').style.width = (s2/8*100) + '%';
+  $('r3').textContent = s3 + ' / 10'; $('f3').style.width = (s3/10*100) + '%';
+  $('r4').textContent = s4 + ' / 6';  $('f4').style.width = (s4/6*100) + '%';
+  $('rAll').textContent = all + ' / 24';
+  const C = 2 * Math.PI * 52;
+  $('ringFill').style.strokeDashoffset = C * (1 - pct/100);
+  $('ringFill').setAttribute('stroke', pct >= 85 ? '#0f8a5f' : pct >= 70 ? '#1e63d0' : '#c62828');
+  $('ringTxt').textContent = pct + '%';
+  $('verdict').textContent = pct >= 85 ? 'Отлично — материал усвоен' : pct >= 70 ? 'Зачёт — есть отдельные пробелы' : 'Незачёт — повторите материал';
+  $('advice').textContent = pct >= 85
+    ? 'Можно переходить к актуализации программ «Б» и «В» до 31.08.2026.'
+    : pct >= 70
+      ? 'Повторите блоки о периодичности обучения по программе «В» и о нормах ПП № 805.'
+      : 'Проходной результат — 70 %. Вернитесь к карточкам «Было / Стало» и пройдите тест повторно.';
+}
+
+/* ---------- Навигация ---------- */
+function setScreen(n){
+  screen = n;
+  document.querySelectorAll('.screen').forEach((s,i) => s.classList.toggle('on', i === n));
+  document.querySelectorAll('.step').forEach((s,i) => {
+    s.classList.toggle('active', i === n);
+    s.classList.toggle('done', i < n);
+  });
+  if(n === 1) buildFlips();
+  if(n === 2) renderSort();
+  if(n === 3) renderQuiz();
+  if(n === 4) renderNum();
+  if(n === 5) renderResult();
+  syncNav();
+}
+function syncNav(){
+  const prev = $('btnPrev'), next = $('btnNext');
+  prev.disabled = (screen === 0);
+  let label = 'Далее →', dis = false;
+  if(screen === 0){ label = 'Начать →'; }
+  if(screen === 1){ label = 'К практике →'; }
+  if(screen === 2){
+    label = (sortI < SORT.length - 1) ? 'Следующее →' : 'К тесту →';
+    dis = sortDone[sortI] === null;
+    prev.disabled = false;
+  }
+  if(screen === 3){
+    label = (quizI < QUIZ.length - 1) ? 'Следующий вопрос →' : 'К нормативам →';
+    dis = quizDone[quizI] === null;
+    prev.disabled = false;
+  }
+  if(screen === 4){
+    label = (numI < NUMS.length - 1) ? 'Следующий →' : 'Показать итоги →';
+    dis = numDone[numI] === null;
+    prev.disabled = false;
+  }
+  if(screen === 5){ label = 'Пройти заново ⟲'; prev.disabled = false; }
+  next.textContent = label;
+  next.disabled = dis;
+  $('foot').textContent = screen === 0
+    ? 'Источник: Правила обучения по охране труда № 2464 в ред. ПП РФ от 30.06.2026 № 805'
+    : 'Набрано баллов: ' + totalScore() + ' из 24 · ПП РФ от 30.06.2026 № 805, вступает в силу 31.08.2026';
+}
+$('btnNext').onclick = () => {
+  if(screen === 2 && sortI < SORT.length - 1){ sortI++; renderSort(); syncNav(); return; }
+  if(screen === 3 && quizI < QUIZ.length - 1){ quizI++; renderQuiz(); syncNav(); return; }
+  if(screen === 4 && numI  < NUMS.length - 1){ numI++;  renderNum();  syncNav(); return; }
+  if(screen === 5){ resetAll(); return; }
+  setScreen(Math.min(5, screen + 1));
+};
+$('btnPrev').onclick = () => {
+  if(screen === 2 && sortI > 0){ sortI--; renderSort(); syncNav(); return; }
+  if(screen === 3 && quizI > 0){ quizI--; renderQuiz(); syncNav(); return; }
+  if(screen === 4 && numI  > 0){ numI--;  renderNum();  syncNav(); return; }
+  setScreen(Math.max(0, screen - 1));
+};
+$('btnReset').onclick = () => resetAll();
+function resetAll(){
+  flipped = new Array(FLIPS.length).fill(false);
+  sortI = quizI = numI = 0;
+  sortDone = new Array(SORT.length).fill(null);
+  quizDone = new Array(QUIZ.length).fill(null);
+  numDone  = new Array(NUMS.length).fill(null);
+  quizPicked.fill(null); numPicked.fill(null);
+  updScore(); setScreen(0);
+}
+document.querySelectorAll('.step').forEach(s => {
+  s.onclick = () => setScreen(+s.dataset.s);
+});
+document.addEventListener('keydown', e => {
+  if(e.key === 'ArrowRight' && !$('btnNext').disabled) $('btnNext').click();
+  if(e.key === 'ArrowLeft'  && !$('btnPrev').disabled) $('btnPrev').click();
+});
+
+updScore(); setScreen(0);
+</script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"1954b47c125f43f8b4338b3c4f804e4f"}' crossorigin="anonymous"></script>
+</body>
+</html>
