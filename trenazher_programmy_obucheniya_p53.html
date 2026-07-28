@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Тренажёр «Кого и по каким программам обучать» (пп. 53, 55 Правил № 2464)</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;overflow:hidden;background:#eef1f6;
+    font-family:'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif}
+
+  /* ================= КОРПУС ================= */
+  .trainer{
+    --w:100vw; --h:600px; --k:1;
+    position:relative;
+    width:min(var(--w),100vw);
+    height:min(var(--h),600px,100vh);
+    max-height:min(600px,100vh);
+    min-width:300px;
+    overflow:hidden;
+    background:linear-gradient(160deg,#16233d 0%,#1e2f4f 45%,#152238 100%);
+    display:flex; flex-direction:column;
+    box-shadow:0 10px 30px rgba(12,20,40,.25);
+    user-select:none; color:#0f172a;
+  }
+
+  /* ================= ШАПКА ================= */
+  .bar{
+    flex:0 0 auto; display:flex; align-items:center; gap:calc(10px*var(--k));
+    padding:calc(8px*var(--k)) calc(14px*var(--k));
+    background:rgba(255,255,255,.06); border-bottom:1px solid rgba(255,255,255,.12);
+    color:#eaf0ff; overflow:hidden;
+  }
+  .logo{flex:0 0 auto; width:calc(28px*var(--k)); height:calc(28px*var(--k)); border-radius:calc(9px*var(--k));
+    background:linear-gradient(140deg,#7dd3fc,#2563eb); display:flex; align-items:center; justify-content:center;
+    font-size:calc(15px*var(--k)); box-shadow:0 2px 9px rgba(37,99,235,.5)}
+  .ttl{flex:1 1 auto; min-width:0}
+  .ttl h1{margin:0; font-size:calc(15px*var(--k)); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .ttl .sub{font-size:calc(10.5px*var(--k)); opacity:.7; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .pips{flex:0 0 auto; display:flex; gap:calc(4px*var(--k))}
+  .pip{width:calc(9px*var(--k)); height:calc(9px*var(--k)); border-radius:50%; background:rgba(255,255,255,.22)}
+  .pip.cur{background:#7dd3fc; box-shadow:0 0 0 calc(3px*var(--k)) rgba(125,211,252,.2)}
+  .pip.ok{background:#22c55e} .pip.err{background:#f59e0b}
+  .chip{flex:0 0 auto; font-size:calc(10.5px*var(--k)); font-weight:700; white-space:nowrap;
+    padding:calc(4px*var(--k)) calc(9px*var(--k)); border-radius:999px;
+    background:rgba(125,211,252,.14); color:#a5d8ff; border:1px solid rgba(125,211,252,.32)}
+
+  /* ================= СЦЕНА ================= */
+  .stage{position:relative; flex:1 1 auto; min-height:0; display:grid;
+    grid-template-columns:minmax(0,0.92fr) minmax(0,1.28fr);
+    gap:calc(10px*var(--k)); padding:calc(10px*var(--k)); overflow:hidden}
+  .col{position:relative; overflow:hidden; min-width:0; border-radius:calc(12px*var(--k))}
+
+  /* --- карточка сотрудника --- */
+  .col-emp{background:#fffdf8; border:1px solid #ded7c7;
+    box-shadow:0 10px 24px rgba(5,12,30,.32), inset 0 0 0 1px #fff; display:flex; align-items:center}
+  .empIn{padding:1.15em 1.25em; width:100%; font-family:'Times New Roman',Times,'Liberation Serif',serif; color:#141414}
+  .cardhead{display:flex; justify-content:space-between; font-size:.74em; color:#6b6558;
+    border-bottom:.5px solid #cfc8b8; padding-bottom:.35em; letter-spacing:.02em}
+  .who{display:flex; gap:.7em; align-items:center; margin:.75em 0 .55em}
+  .ava{flex:0 0 auto; width:2.9em; height:2.9em; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-family:'Segoe UI',Arial,sans-serif; font-weight:800; font-size:1em; color:#fff;
+    background:linear-gradient(140deg,#3b82f6,#1d4ed8); box-shadow:0 3px 10px rgba(29,78,216,.3)}
+  .who .nm{font-weight:700; font-size:1.05em; line-height:1.2}
+  .who .ps{font-size:.95em; color:#4a4438; line-height:1.25}
+  .facts{margin:.35em 0 0; padding:0; list-style:none; font-size:.95em; line-height:1.38}
+  .facts li{position:relative; padding-left:1.1em; margin:.3em 0; text-align:justify}
+  .facts li::before{content:'—'; position:absolute; left:0; color:#8a8375}
+  .facts b{font-weight:700}
+  .qbox{margin-top:.7em; padding:.5em .65em; border-left:.3em solid #2563eb; background:#f3f7ff;
+    font-family:'Segoe UI',Arial,sans-serif; font-size:.9em; color:#1e3a8a; border-radius:.35em; line-height:1.35}
+
+  /* --- программы --- */
+  .col-prog{background:rgba(255,255,255,.95); box-shadow:0 10px 24px rgba(5,12,30,.3);
+    display:flex; align-items:center}
+  .progIn{padding:.9em 1em; width:100%}
+  .progIn h2{margin:0 0 .1em; font-size:1.12em; color:#12203c}
+  .hint{font-size:.85em; color:#5c6880; margin-bottom:.6em}
+  .prog{display:flex; gap:.6em; align-items:flex-start; width:100%; text-align:left; cursor:pointer;
+    font:inherit; color:inherit; margin-bottom:.45em; padding:.55em .65em; border-radius:.6em;
+    background:#f7f9fd; border:1.5px solid #dde4f0; transition:background-color .13s,border-color .13s,box-shadow .13s,color .13s}
+  .prog:hover{border-color:#9db8e8; background:#eef4ff}
+  .prog:focus-visible{outline:2px solid #1d4ed8; outline-offset:2px}
+  .prog.sel{background:#eaf3ff; border-color:#2563eb; box-shadow:0 2px 10px rgba(37,99,235,.16)}
+  .prog[disabled]{cursor:default; opacity:.95}
+  .box{flex:0 0 auto; width:1.35em; height:1.35em; border-radius:.32em; border:1.5px solid #b9c5da;
+    background:#fff; display:flex; align-items:center; justify-content:center; color:#fff;
+    font-size:.9em; font-weight:900; line-height:1; margin-top:.1em}
+  .prog.sel .box{background:#2563eb; border-color:#2563eb}
+  .prog.miss{border-color:#ef4444; background:#fff2f2}
+  .prog.extra{border-color:#f59e0b; background:#fff8ec}
+  .prog.right{border-color:#22c55e; background:#f1fbf4}
+  .code{font-weight:800; font-size:.95em; letter-spacing:.02em; color:#1d4ed8; white-space:nowrap}
+  .prog.miss .code{color:#b91c1c} .prog.extra .code{color:#b45309} .prog.right .code{color:#15803d}
+  .pname{font-size:.94em; line-height:1.32; color:#1c2740}
+  .ptxt{display:block; min-width:0}
+  .pmeta{display:block; font-size:.82em; color:#69748c; margin-top:.15em}
+  .actions{display:flex; gap:.45em; margin-top:.55em; flex-wrap:wrap}
+  button.act{font:inherit; font-weight:700; cursor:pointer; border-radius:.6em; padding:.55em .9em;
+    border:1.5px solid transparent; transition:background-color .13s,border-color .13s,box-shadow .13s,color .13s}
+  .primary{background:#1d4ed8; color:#fff; box-shadow:0 3px 10px rgba(29,78,216,.3)}
+  .primary:hover{background:#1740b6}
+  .ghost{background:#fff; color:#31405e; border-color:#cfd7e6}
+  .ghost:hover{background:#f2f5fc}
+  .counter{margin-left:auto; align-self:center; font-size:.85em; color:#69748c; white-space:nowrap}
+
+  /* ================= ПЛАШКА ================= */
+  .flash{position:absolute; left:0; right:0; top:0; bottom:calc(-1*var(--pad,0px));
+    display:none; align-items:flex-end; z-index:20;
+    background:rgba(10,18,36,.5); backdrop-filter:blur(2px)}
+  .flash.on{display:flex; animation:fade .16s ease}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  .panel{width:100%; overflow:hidden; background:#fff; border-radius:calc(14px*var(--k)) calc(14px*var(--k)) 0 0;
+    padding-bottom:var(--pad,0px);
+    border-top:calc(5px*var(--k)) solid #22c55e; box-shadow:0 -14px 40px rgba(5,12,30,.45);
+    animation:up .22s cubic-bezier(.2,.9,.3,1)}
+  .panel.warn{border-top-color:#f59e0b}
+  @keyframes up{from{transform:translateY(24%)}to{transform:translateY(0)}}
+  .panelIn{padding:.85em 1.1em .8em}
+  .phead{display:flex; align-items:center; gap:.55em; margin-bottom:.45em}
+  .phead .ico{font-size:1.7em; line-height:1;
+    font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji','Segoe UI Symbol',sans-serif}
+  .phead .ttx{font-size:1.22em; font-weight:800; color:#15803d}
+  .panel.warn .phead .ttx{color:#b45309}
+  .phead .sc{margin-left:auto; font-size:.85em; color:#69748c; white-space:nowrap}
+  .issues{display:flex; flex-direction:column; gap:.35em}
+  .iss{display:flex; gap:.55em; align-items:flex-start; padding:.5em .65em; border-radius:.5em; font-size:.93em; line-height:1.36}
+  .iss.miss{background:#fff3f3; border-left:.3em solid #ef4444; color:#7f1d1d}
+  .iss.extra{background:#fff8ea; border-left:.3em solid #f59e0b; color:#78350f}
+  .iss.ok{background:#f1fbf4; border-left:.3em solid #22c55e; color:#14532d}
+  .iss .tag{flex:0 0 auto; font-weight:800; font-size:.86em; text-transform:uppercase; letter-spacing:.03em;
+    padding:.12em .45em; border-radius:.3em; background:rgba(0,0,0,.07); white-space:nowrap}
+  .iss b{font-weight:700}
+  .pnorm{margin-top:.5em; font-size:.86em; color:#4a5670; background:#f5f7fb; border:1px solid #e5e9f2;
+    border-radius:.45em; padding:.45em .6em; line-height:1.35}
+  .pfoot{display:flex; gap:.45em; justify-content:flex-end; margin-top:.6em; flex-wrap:wrap}
+
+  /* ================= ИТОГ ================= */
+  .final{padding:1.2em 1.5em}
+  .final h3{margin:0 0 .35em; font-size:1.45em; color:#12203c}
+  .final .vl{font-size:1em; color:#25334f; background:#fffaf0; border:1px solid #f3e3bf;
+    border-radius:.55em; padding:.55em .75em; line-height:1.4}
+  .final .grid{display:flex; gap:.55em; margin:.65em 0}
+  .final .grid div{flex:1; background:#f5f7fc; border:1px solid #e3e8f3; border-radius:.55em; padding:.5em .65em}
+  .final .grid span{display:block; font-size:.78em; color:#66718c}
+  .final .grid b{font-size:1.55em; color:#12203c}
+  .final table{width:100%; border-collapse:collapse; font-size:.88em; margin-top:.2em}
+  .final td{padding:.3em .4em; border-bottom:1px solid #eceff6; vertical-align:top}
+  .final td.r{text-align:right; white-space:nowrap; font-weight:700}
+  .final .yes{color:#15803d} .final .no{color:#b45309}
+
+  /* ================= УЗКАЯ РАСКЛАДКА ================= */
+  .trainer.narrow .stage{grid-template-columns:minmax(0,1fr); grid-template-rows:auto minmax(0,1fr); gap:calc(7px*var(--k))}
+  .trainer.narrow .ttl .sub{display:none}
+  .trainer.narrow .empIn{padding:.7em .8em}
+  .trainer.narrow .progIn{padding:.65em .75em}
+  .trainer.narrow .qbox{display:none}
+  .trainer.narrow .panelIn{padding:.7em .8em .65em}
+
+  /* ================= РЕСАЙЗЕР ================= */
+  .grip{position:absolute; right:0; bottom:0; width:26px; height:26px; cursor:nwse-resize; z-index:40;
+    background:linear-gradient(135deg,transparent 46%,rgba(255,255,255,.6) 46%,rgba(255,255,255,.6) 54%,transparent 54%,
+      transparent 66%,rgba(255,255,255,.6) 66%,rgba(255,255,255,.6) 74%,transparent 74%)}
+  .grip::before{content:''; position:absolute; inset:-8px}
+  .grip:hover{background-color:rgba(255,255,255,.14)}
+  .edge{position:absolute; left:0; right:26px; bottom:0; height:7px; cursor:ns-resize; z-index:39}
+  .tip{position:absolute; right:30px; bottom:6px; z-index:40; font-size:11px; color:#cfe0ff;
+    background:rgba(10,18,36,.65); padding:2px 7px; border-radius:5px; opacity:0; transition:.2s;
+    pointer-events:none; white-space:nowrap}
+  .tip.on{opacity:1}
+</style>
+</head>
+<body>
+
+<div class="trainer" id="trainer">
+
+  <div class="bar">
+    <div class="logo">🎓</div>
+    <div class="ttl">
+      <h1>Кого и по каким программам обучать</h1>
+      <div class="sub">Пункты 53 и 55 Правил обучения по охране труда (ПП РФ № 2464 в ред. ПП РФ от 30.06.2026 № 805)</div>
+    </div>
+    <div class="pips" id="pips"></div>
+    <div class="chip" id="chip">Сотрудник 1 из 5</div>
+  </div>
+
+  <div class="stage" id="stage">
+    <div class="col col-emp"><div class="empIn" id="empIn"></div></div>
+    <div class="col col-prog"><div class="progIn" id="progIn"></div></div>
+
+    <div class="flash" id="flash">
+      <div class="panel" id="panel"><div class="panelIn" id="panelIn"></div></div>
+    </div>
+  </div>
+
+  <div class="edge" id="edge" title="Потяните, чтобы изменить высоту"></div>
+  <div class="grip" id="grip" title="Потяните, чтобы изменить размер. Двойной клик — сброс (100vw × 600px)"></div>
+  <div class="tip" id="tip"></div>
+</div>
+
+<script>
+/* ==========================================================================
+   ПРОГРАММЫ ОБУЧЕНИЯ ТРЕБОВАНИЯМ ОХРАНЫ ТРУДА (п. 46 Правил № 2464)
+   ========================================================================== */
+const PROGRAMS = {
+  A:{code:'46А', name:'Обучение по общим вопросам охраны труда и функционирования системы управления охраной труда',
+     meta:'не менее 16 часов · подп. «а» п. 46 Правил'},
+  B:{code:'46Б', name:'Обучение безопасным методам и приёмам выполнения работ при воздействии вредных и (или) опасных производственных факторов, источников опасности',
+     meta:'не менее 16 часов · подп. «б» п. 46 Правил'},
+  V:{code:'46В', name:'Обучение безопасным методам и приёмам выполнения работ повышенной опасности',
+     meta:'подп. «в» п. 46 Правил · перечень работ — по п. 55'}
+};
+const ORDER = ['A','B','V'];
+
+/* ==========================================================================
+   СОТРУДНИКИ
+   need    — обязательные программы
+   miss.X  — пояснение, если обязательная программа НЕ выбрана
+   extra.X — пояснение, если выбрана ЛИШНЯЯ программа
+   ========================================================================== */
+const STAFF = [
+{
+  id:1, ini:'СИ', name:'Соловьёв Игорь Петрович', post:'Генеральный директор ООО «Альфа»',
+  unit:'Аппарат управления · табельный номер 0001',
+  facts:[
+    'Является <b>работодателем — руководителем организации</b>.',
+    'Обязанности по охране труда на заместителей приказом <b>не возлагал</b>.',
+    'К работам повышенной опасности не допущен, наряды-допуски не выдаёт и ответственным за организацию таких работ <b>не назначен</b>.',
+    'В состав комиссии по проверке знания требований охраны труда и комитета по охране труда <b>не входит</b>.'
+  ],
+  need:['A'],
+  norm:'Подп. «а» п. 53 Правил: работодатель (руководитель организации) — по программе, указанной в подп. «а» п. 46 Правил.',
+  miss:{A:'Работодатель (руководитель организации) прямо назван в <b>подп. «а» п. 53</b> — он обучается по программе <b>46А</b> «Общие вопросы охраны труда и функционирования СУОТ». Для директора это обязательный минимум.'},
+  extra:{
+    B:'Программа <b>46Б</b> закреплена п. 53 за руководителями структурных подразделений (подп. «б»), специалистами (подп. «в»), специалистами по ОТ (подп. «г»), рабочими профессиями (подп. «д»), членами комиссий (подп. «е»), членами комитетов по ОТ (подп. «ж») и лицами, проводящими инструктажи (подп. «з»). В <b>подп. «а»</b> для руководителя организации указана <b>только программа 46А</b>.',
+    V:'Программа <b>46В</b> по <b>п. 55</b> обязательна для тех, кто <b>непосредственно выполняет</b> работы повышенной опасности, и для лиц, <b>ответственных за организацию, выполнение и контроль</b> таких работ, определённых ЛНА работодателя. Директор ни к одной из этих групп не отнесён.'
+  }
+},
+{
+  id:2, ini:'КА', name:'Кузьмина Анна Сергеевна', post:'Инженер-технолог (категория «специалисты»)',
+  unit:'Производственный цех № 2 · табельный номер 0417',
+  facts:[
+    'Отнесена по штатному расписанию к категории <b>«специалисты»</b>, руководителем подразделения не является.',
+    'Рабочее место в цехе, по результатам СОУТ — <b>вредные условия труда, класс 3.1</b> (шум, химический фактор).',
+    'К работам повышенной опасности <b>не привлекается</b>, наряды-допуски не оформляет.',
+    'Инструктажи по охране труда не проводит, в комиссиях <b>не состоит</b>.'
+  ],
+  need:['B'],
+  norm:'Подп. «в» п. 53 Правил: работники организации, отнесённые к категории специалисты, — по программе, указанной в подп. «б» п. 46 Правил.',
+  miss:{B:'Работники категории «специалисты» указаны в <b>подп. «в» п. 53</b> — они обучаются по программе <b>46Б</b> (безопасные методы и приёмы работ при воздействии вредных и опасных факторов и источников опасности). Условия труда вредные (3.1), источники опасности идентифицированы, поэтому обучение обязательно.'},
+  extra:{
+    A:'Программа <b>46А</b> закреплена в п. 53 за руководителями (подп. «а» и «б»), специалистами по охране труда и лицами с функциями СОТ (подп. «г»), членами комиссий (подп. «е») и членами комитетов по ОТ (подп. «ж»). Для <b>рядового специалиста</b> подп. «в» предусматривает <b>только 46Б</b>.',
+    V:'Программа <b>46В</b> по <b>п. 55</b> нужна только тем, кто непосредственно выполняет работы повышенной опасности, и ответственным за их организацию, выполнение и контроль. Инженер-технолог к таким работам не привлекается, поэтому 46В — лишняя.'
+  }
+},
+{
+  id:3, ini:'ГО', name:'Гаврилова Ольга Дмитриевна', post:'Офис-менеджер; на неё возложены функции специалиста по охране труда',
+  unit:'Административный отдел · табельный номер 0126',
+  facts:[
+    'Штатной должности специалиста по охране труда в организации нет.',
+    'Приказом директора от 15.09.2026 № 71 на неё <b>возложены функции специалиста по охране труда</b>.',
+    'Работы повышенной опасности не выполняет и ответственной за их организацию <b>не назначена</b>.',
+    'В состав комиссии по проверке знания требований охраны труда пока не включена.'
+  ],
+  need:['A','B'],
+  norm:'Подп. «г» п. 53 Правил (в ред. пп. 20 п. 2 изменений, утв. ПП РФ от 30.06.2026 № 805): специалисты по охране труда, а также лица, на которых возложены функции специалиста по охране труда, — по программам, указанным в подп. «а» и «б» п. 46 Правил.',
+  miss:{
+    A:'С 31.08.2026 подп. «г» п. 53 дополнен словами <b>«а также лица, на которых возложены функции специалиста по охране труда»</b>. Раньше норма формально касалась только штатных специалистов по ОТ — теперь такой работник обучается по <b>обеим</b> программам, и <b>46А</b> в их числе.',
+    B:'Подп. «г» п. 53 требует обучения по программам, указанным в подп. <b>«а» и «б»</b> п. 46. Программа <b>46Б</b> обязательна наравне с 46А — одной общей программы недостаточно.'
+  },
+  extra:{
+    V:'Программа <b>46В</b> обязательна по <b>п. 55</b> только для работников, непосредственно выполняющих работы повышенной опасности, и для лиц, ответственных за их организацию, выполнение и контроль. Возложение функций специалиста по охране труда само по себе такой обязанности не порождает.'
+  }
+},
+{
+  id:4, ini:'ТР', name:'Тагиров Руслан Маратович', post:'Электрогазосварщик 5-го разряда (рабочая профессия)',
+  unit:'Сварочный участок · табельный номер 0733',
+  facts:[
+    'Работник <b>рабочей профессии</b>, руководителем и специалистом не является.',
+    '<b>Непосредственно выполняет</b> огневые работы по наряду-допуску — работы повышенной опасности из перечня, утверждённого работодателем.',
+    'Ответственным за организацию, выполнение и контроль работ повышенной опасности <b>не назначен</b> — он исполнитель.',
+    'Инструктажи по охране труда другим работникам не проводит.'
+  ],
+  need:['B','V'],
+  norm:'Подп. «д» п. 53 Правил (работники рабочих профессий — программа 46Б) и п. 55 Правил (работники, непосредственно выполняющие работы повышенной опасности, — программа 46В).',
+  miss:{
+    B:'Работники рабочих профессий указаны в <b>подп. «д» п. 53</b> — обучение по программе <b>46Б</b> обязательно.',
+    V:'По <b>п. 55</b> обучению по программе <b>46В</b> подлежат работники, <b>непосредственно выполняющие</b> работы повышенной опасности. Огневые работы по наряду-допуску входят в перечень, установленный работодателем на основании перечня Минтруда России, поэтому 46В обязательна.'
+  },
+  extra:{
+    A:'Для работников рабочих профессий <b>подп. «д» п. 53</b> предусматривает <b>только программу 46Б</b>. Программа <b>46А</b> (общие вопросы ОТ и функционирование СУОТ) за этой категорией в п. 53 не закреплена — обучать по ней сварщика Правила не требуют.'
+  }
+},
+{
+  id:5, ini:'БД', name:'Белов Дмитрий Игоревич', post:'Начальник производственного цеха № 2',
+  unit:'Производственный цех № 2 · табельный номер 0208',
+  facts:[
+    'Является <b>руководителем структурного подразделения</b> организации.',
+    'Приказом директора назначен <b>ответственным за организацию, выполнение и контроль работ повышенной опасности</b>: выдаёт наряды-допуски на огневые работы и работы на высоте.',
+    'Сам работы повышенной опасности не выполняет — организует и контролирует их.',
+    'Членом комиссии по проверке знания требований охраны труда не является.'
+  ],
+  need:['A','B','V'],
+  norm:'Подп. «б» п. 53 Правил (руководители структурных подразделений — программы 46А и 46Б) и п. 55 Правил (лица, ответственные за организацию работ повышенной опасности, из числа руководителей и специалистов по подп. «а»–«в» п. 53 — дополнительно 46В).',
+  miss:{
+    A:'Руководители структурных подразделений и их заместители указаны в <b>подп. «б» п. 53</b> — они обучаются по программам, указанным в подп. <b>«а» и «б»</b> п. 46. Программа <b>46А</b> обязательна.',
+    B:'Подп. «б» п. 53 требует обучения и по программе <b>46Б</b> — безопасным методам и приёмам работ при воздействии вредных и опасных факторов и источников опасности, идентифицированных по СОУТ и оценке профрисков.',
+    V:'Ключевое правило <b>п. 55</b>: если лицами, ответственными за организацию работ повышенной опасности, являются <b>руководители различных уровней управления и специалисты, указанные в подп. «а»–«в» п. 53</b>, такие работники <b>дополнительно</b> проходят обучение по программам безопасных методов и приёмов выполнения работ повышенной опасности (подп. «в» п. 46). Начальник цеха выдаёт наряды-допуски, значит <b>46В обязательна</b>.'
+  },
+  extra:{}
+}
+];
+
+/* ==========================================================================
+   ЛОГИКА
+   ========================================================================== */
+const $ = id=>document.getElementById(id);
+const trainer=$('trainer'), empIn=$('empIn'), progIn=$('progIn'),
+      flash=$('flash'), panel=$('panel'), panelIn=$('panelIn'), stage=$('stage');
+
+let idx=0, sel=new Set(), checked=false, done=false;
+const results = STAFF.map(()=>({tries:0, first:null}));
+
+function renderPips(){
+  const p=$('pips'); p.innerHTML='';
+  STAFF.forEach((s,i)=>{
+    const d=document.createElement('div');
+    const r=results[i];
+    d.className='pip'+(i===idx&&!done?' cur':(r.first===true?' ok':(r.first===false?' err':'')));
+    d.title='Сотрудник '+(i+1);
+    p.appendChild(d);
+  });
+  $('chip').textContent = done ? 'Итог' : 'Сотрудник '+(idx+1)+' из '+STAFF.length;
+}
+
+function renderEmployee(){
+  const s=STAFF[idx];
+  empIn.innerHTML =
+    '<div class="cardhead"><span>ЛИЧНАЯ КАРТОЧКА РАБОТНИКА</span><span>ООО «Альфа» · форма Т-2</span></div>'+
+    '<div class="who"><div class="ava">'+s.ini+'</div>'+
+      '<div><div class="nm">'+s.name+'</div><div class="ps">'+s.post+'</div></div></div>'+
+    '<div style="font-size:.85em;color:#6b6558;margin-bottom:.2em">'+s.unit+'</div>'+
+    '<ul class="facts">'+s.facts.map(f=>'<li>'+f+'</li>').join('')+'</ul>'+
+    '<div class="qbox">Определите, по каким программам обучения требованиям охраны труда этот работник обязан пройти обучение. Отметьте <b>все обязательные</b> — и <b>только</b> их.</div>';
+}
+
+function renderPrograms(){
+  const s=STAFF[idx];
+  progIn.innerHTML =
+    '<h2>Программы обучения требованиям охраны труда</h2>'+
+    '<div class="hint">Пункт 46 Правил № 2464. Отметьте обязательные для этого работника.</div>'+
+    ORDER.map(k=>{
+      const p=PROGRAMS[k];
+      return '<button class="prog" data-p="'+k+'"><span class="box">✓</span><span class="ptxt">'+
+        '<span class="code">'+p.code+'</span> — <span class="pname">'+p.name+'</span>'+
+        '<span class="pmeta">'+p.meta+'</span></span></button>';
+    }).join('')+
+    '<div class="actions">'+
+      '<button class="act primary" id="btnCheck">Проверить</button>'+
+      '<button class="act ghost" id="btnClear">Сбросить</button>'+
+      '<span class="counter" id="cnt"></span>'+
+    '</div>';
+
+  progIn.querySelectorAll('.prog').forEach(b=>{
+    if(sel.has(b.dataset.p)) b.classList.add('sel');
+    b.addEventListener('click', ()=>{
+      if(checked) return;
+      const k=b.dataset.p;
+      if(sel.has(k)) sel.delete(k); else sel.add(k);
+      b.classList.toggle('sel', sel.has(k));
+      updCounter();
+    });
+  });
+  $('btnCheck').onclick = check;
+  $('btnClear').onclick = ()=>{ if(checked) return; sel.clear();
+    progIn.querySelectorAll('.prog').forEach(b=>b.classList.remove('sel')); updCounter(); };
+  updCounter();
+}
+function updCounter(){
+  const c=$('cnt'); if(c) c.textContent = 'Отмечено: '+sel.size+' из 3';
+}
+
+function check(){
+  const s=STAFF[idx];
+  const need=new Set(s.need);
+  const missing = s.need.filter(k=>!sel.has(k));
+  const extra   = [...sel].filter(k=>!need.has(k)).sort((a,b)=>ORDER.indexOf(a)-ORDER.indexOf(b));
+  const okAll = missing.length===0 && extra.length===0;
+
+  checked = true;
+  results[idx].tries++;
+  if(results[idx].first===null) results[idx].first = okAll;
+
+  // подсветка карточек программ
+  progIn.querySelectorAll('.prog').forEach(b=>{
+    const k=b.dataset.p; b.disabled=true;
+    b.classList.remove('miss','extra','right');
+    if(missing.includes(k)) b.classList.add('miss');
+    else if(extra.includes(k)) b.classList.add('extra');
+    else if(need.has(k)) b.classList.add('right');
+  });
+
+  // содержимое плашки
+  let items='';
+  if(okAll){
+    items = '<div class="iss ok"><span class="tag">верно</span><span>Набор программ определён правильно: '+
+            s.need.map(k=>'<b>'+PROGRAMS[k].code+'</b>').join(' + ')+'. Ни одной лишней, ни одной пропущенной.</span></div>';
+  }else{
+    items = missing.map(k=>'<div class="iss miss"><span class="tag">не выбрана</span><span><b>'+
+              PROGRAMS[k].code+'</b> — обязательная программа. '+s.miss[k]+'</span></div>').join('')+
+            extra.map(k=>'<div class="iss extra"><span class="tag">лишняя</span><span><b>'+
+              PROGRAMS[k].code+'</b> — обучение по этой программе не требуется. '+s.extra[k]+'</span></div>').join('');
+  }
+
+  panel.classList.toggle('warn', !okAll);
+  const last = idx===STAFF.length-1;
+  panelIn.innerHTML =
+    '<div class="phead"><span class="ico">'+(okAll?'✅':'⚠️')+'</span>'+
+      '<span class="ttx">'+(okAll?'Всё верно!':(missing.length&&extra.length?'Есть пропуск и лишняя программа':(missing.length?'Пропущена обязательная программа':'Выбрана лишняя программа')))+'</span>'+
+      '<span class="sc">'+s.name.split(' ')[0]+' '+s.name.split(' ')[1]+' · попытка '+results[idx].tries+'</span></div>'+
+    '<div class="issues">'+items+'</div>'+
+    '<div class="pnorm"><b>Основание:</b> '+s.norm+'</div>'+
+    '<div class="pfoot">'+
+      (okAll?'':'<button class="act ghost" id="btnRetry">Исправить выбор</button>')+
+      '<button class="act primary" id="btnNext">'+(last?'Показать итог':'Следующий сотрудник →')+'</button>'+
+    '</div>';
+
+  flash.classList.add('on');
+  const r=$('btnRetry'); if(r) r.onclick=retry;
+  $('btnNext').onclick=next;
+  $('btnNext').focus();
+  fitAll();
+}
+
+function retry(){
+  flash.classList.remove('on');
+  checked=false;
+  progIn.querySelectorAll('.prog').forEach(b=>{
+    b.disabled=false; b.classList.remove('miss','extra','right');
+  });
+  fitAll();
+}
+
+function next(){
+  flash.classList.remove('on');
+  if(idx<STAFF.length-1){
+    idx++; sel=new Set(); checked=false;
+    renderPips(); renderEmployee(); renderPrograms(); fitAll();
+  } else showFinal();
+}
+
+function showFinal(){
+  done=true;
+  const solved = results.filter(r=>r.first===true).length;
+  const totalTries = results.reduce((a,r)=>a+r.tries,0);
+  let v;
+  if(solved===STAFF.length) v='Отлично! Все пять работников распределены по программам без единой ошибки — вы уверенно применяете пп. 53 и 55 Правил, включая поправки № 805.';
+  else if(solved>=4) v='Хороший результат. Осталось закрепить один случай — обратите внимание на разбор в плашках, там указаны конкретные подпункты п. 53.';
+  else if(solved>=2) v='Неплохо, но половина случаев вызвала затруднения. Ключ к п. 53 — сначала определить категорию работника, и только потом проверить п. 55 по работам повышенной опасности.';
+  else v='Стоит пройти тренажёр ещё раз. Разбирайте каждого работника по алгоритму: категория по п. 53 → затем проверка по п. 55 (работы повышенной опасности).';
+
+  const rows = STAFF.map((s,i)=>{
+    const ok=results[i].first===true;
+    return '<tr><td>'+s.post.split(';')[0]+'</td>'+
+      '<td class="r">'+s.need.map(k=>PROGRAMS[k].code).join(' + ')+'</td>'+
+      '<td class="r '+(ok?'yes':'no')+'">'+(ok?'верно':'с ошибкой')+'</td></tr>';
+  }).join('');
+
+  stage.innerHTML = '<div class="col col-prog" style="grid-column:1/-1"><div class="progIn" id="progIn">'+
+    '<div class="final">'+
+      '<h3>Итог: распределение работников по программам обучения</h3>'+
+      '<div class="vl">'+v+'</div>'+
+      '<div class="grid">'+
+        '<div><span>Решено с первой попытки</span><b>'+solved+' / '+STAFF.length+'</b></div>'+
+        '<div><span>Всего проверок</span><b>'+totalTries+'</b></div>'+
+        '<div><span>Точность</span><b>'+Math.round(solved/STAFF.length*100)+'%</b></div>'+
+      '</div>'+
+      '<table><tbody>'+rows+'</tbody></table>'+
+      '<div class="actions"><button class="act primary" id="btnAgain">Пройти заново</button></div>'+
+    '</div></div></div>';
+  renderPips();
+  $('btnAgain').onclick = ()=>location.reload();
+  fitAll();
+}
+
+/* ==========================================================================
+   МАСШТАБИРОВАНИЕ: всё влезает, скроллов нет
+   ========================================================================== */
+function fitBy(inner, fits, min, max){
+  let lo=min, hi=max, best=min;
+  for(let n=0;n<15;n++){
+    const mid=(lo+hi)/2;
+    inner.style.fontSize=mid+'px';
+    if(fits()){best=mid; lo=mid;} else hi=mid;
+  }
+  inner.style.fontSize=best+'px';
+  /* контрольный проход: гарантируем отсутствие переполнения даже при
+     перекомпоновке текста после бинарного поиска */
+  let guard=0;
+  while(!fits() && best>min && guard++<40){
+    best=Math.max(min, best*0.95);
+    inner.style.fontSize=best+'px';
+  }
+}
+function fitCol(inner){
+  const out=inner.parentElement;
+  fitBy(inner, ()=> inner.scrollHeight<=out.clientHeight+0.6 && inner.scrollWidth<=out.clientWidth+0.6, 3.2, 16.5);
+}
+function fitPanel(){
+  if(!flash.classList.contains('on')) return;
+  const maxH = Math.floor(stage.clientHeight);
+  panel.style.maxHeight = maxH+'px';
+  fitBy(panelIn, ()=> panel.scrollHeight<=maxH+0.6 && panelIn.scrollWidth<=panel.clientWidth+0.6, 4, 15.5);
+}
+function setK(){
+  const h=trainer.clientHeight, w=trainer.clientWidth;
+  const k=Math.max(.6, Math.min(1, Math.min(h/600, w/900+.35)));
+  trainer.style.setProperty('--k', k.toFixed(3));
+  trainer.classList.toggle('narrow', w<=780);
+  /* плашка должна доходить до самого низа тренажёра, перекрывая padding сцены */
+  stage.style.setProperty('--pad', getComputedStyle(stage).paddingBottom);
+}
+let raf=null;
+function fitAll(){
+  if(raf) cancelAnimationFrame(raf);
+  raf=requestAnimationFrame(()=>{
+    setK();
+    const e=$('empIn'), p=$('progIn');
+    if(e) fitCol(e);
+    if(p) fitCol(p);
+    fitPanel();
+  });
+}
+
+/* ==========================================================================
+   РЕСАЙЗЕР
+   ========================================================================== */
+const grip=$('grip'), edge=$('edge'), tip=$('tip');
+let drag=null;
+function start(e,mode){
+  drag={mode, r:trainer.getBoundingClientRect()};
+  tip.classList.add('on');
+  document.body.style.cursor = mode==='both'?'nwse-resize':'ns-resize';
+  e.preventDefault();
+  window.addEventListener('pointermove', move);
+  window.addEventListener('pointerup', end, {once:true});
+}
+function move(e){
+  if(!drag) return;
+  const maxW=document.documentElement.clientWidth;
+  const maxH=Math.min(600, document.documentElement.clientHeight);
+  if(drag.mode==='both'){
+    trainer.style.setProperty('--w', Math.max(320, Math.min(e.clientX-drag.r.left, maxW))+'px');
+  }
+  trainer.style.setProperty('--h', Math.max(240, Math.min(e.clientY-drag.r.top, maxH))+'px');
+  tip.textContent = Math.round(trainer.clientWidth)+' × '+Math.round(trainer.clientHeight)+' px';
+  fitAll();
+}
+function end(){
+  drag=null; document.body.style.cursor='';
+  setTimeout(()=>tip.classList.remove('on'), 900);
+  window.removeEventListener('pointermove', move);
+  fitAll();
+}
+grip.addEventListener('pointerdown', e=>start(e,'both'));
+edge.addEventListener('pointerdown', e=>start(e,'v'));
+grip.addEventListener('dblclick', ()=>{
+  trainer.style.setProperty('--w','100vw');
+  trainer.style.setProperty('--h','600px');
+  tip.textContent='Сброшено: 100vw × 600px'; tip.classList.add('on');
+  setTimeout(()=>tip.classList.remove('on'),1200);
+  fitAll();
+});
+
+new ResizeObserver(()=>fitAll()).observe(trainer);
+window.addEventListener('resize', fitAll);
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fitAll);
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape' && flash.classList.contains('on')){ const r=$('btnRetry'); if(r) retry(); }
+});
+
+renderPips(); renderEmployee(); renderPrograms(); fitAll();
+setTimeout(fitAll,60);
+</script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"1954b47c125f43f8b4338b3c4f804e4f"}' crossorigin="anonymous"></script>
+</body>
+</html>
