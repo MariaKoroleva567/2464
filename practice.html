@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тренажер: Дистанционное обучение по охране труда</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body, html {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background-color: #0f172a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Контейнер-обертка с максимальной высотой 600px */
+        #viewport-wrapper {
+            width: 100vw;
+            height: 100vh;
+            max-height: 600px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Фиксированный базовый холст для масштабирования без потери пропорций */
+        #app-stage {
+            width: 960px;
+            height: 580px;
+            background: #1e293b;
+            color: #f8fafc;
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+            position: absolute;
+            transform-origin: center center;
+        }
+
+        /* Шапка */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #334155;
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+        }
+
+        .role-badge {
+            background-color: #0284c7;
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .score-board {
+            font-size: 16px;
+            font-weight: 600;
+            color: #38bdf8;
+        }
+
+        /* Основная рабочая область */
+        .content-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            flex-grow: 1;
+            height: calc(100% - 130px);
+        }
+
+        .card {
+            background: #334155;
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .dialogue-box {
+            background: #0f172a;
+            border-left: 4px solid #38bdf8;
+            padding: 12px;
+            border-radius: 4px;
+            font-size: 15px;
+            line-height: 1.4;
+            margin-bottom: 12px;
+        }
+
+        .task-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #f1f5f9;
+            margin-bottom: 8px;
+        }
+
+        .task-desc {
+            font-size: 14px;
+            color: #cbd5e1;
+            line-height: 1.4;
+        }
+
+        /* Кнопки решений */
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn-option {
+            background: #475569;
+            color: #fff;
+            border: 2px solid transparent;
+            padding: 12px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-option:hover {
+            background: #64748b;
+            border-color: #38bdf8;
+        }
+
+        /* Обратная связь */
+        .feedback-box {
+            margin-top: 12px;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback-box.success {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid #22c55e;
+            color: #4ade80;
+        }
+
+        .feedback-box.error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            color: #f87171;
+        }
+
+        /* Подвал */
+        footer {
+            margin-top: 16px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .btn-next {
+            background: #0284c7;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            display: none;
+        }
+
+        .btn-next:hover {
+            background: #0369a1;
+        }
+
+        /* Финальный экран */
+        .final-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+            gap: 16px;
+        }
+
+        .final-score {
+            font-size: 36px;
+            font-weight: bold;
+            color: #38bdf8;
+        }
+    </style>
+</head>
+<body>
+
+<div id="viewport-wrapper">
+    <div id="app-stage">
+        <!-- Шапка -->
+        <header>
+            <span class="role-badge">Роль: Специалист по охране труда</span>
+            <div id="step-tracker">Ситуация 1 из 3</div>
+            <div class="score-board">Баллы: <span id="score-val">0</span> / 300</div>
+        </header>
+
+        <!-- Рабочая область тренажера -->
+        <div id="game-screen" class="content-area">
+            <div class="card">
+                <div>
+                    <div class="dialogue-box" id="dialogue-text">Легенда загружается...</div>
+                    <div class="task-title" id="task-title">Задача:</div>
+                    <div class="task-desc" id="task-desc">Описание...</div>
+                </div>
+                <div id="feedback-box" class="feedback-box"></div>
+            </div>
+
+            <div class="card">
+                <div class="options-list" id="options-container">
+                    <!-- Кнопки вариантов действий генерируются динамически -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Финальный экран -->
+        <div id="final-screen" class="final-screen">
+            <h2>Оценка решения кейса по согласованию формата обучения</h2>
+            <div class="final-score" id="final-score">0 / 300</div>
+            <p id="final-feedback-text" style="max-width: 700px; line-height: 1.5; color: #cbd5e1;"></p>
+            <button class="btn-next" id="btn-restart" style="display: inline-block;">Пройти заново</button>
+        </div>
+
+        <!-- Подвал -->
+        <footer id="footer-controls">
+            <button class="btn-next" id="btn-next">Следующая ситуация</button>
+        </footer>
+    </div>
+</div>
+
+<script>
+    // --- СЦЕНАРИЙ И ИГРОВАЯ ЛОГИКА ---
+    const scenarios = [
+        {
+            dialogue: "Генеральный директор: «Мы перевели весь офис и производство на удаленное обучение. Сократили расходы на учебный центр. Переводим теорию, вебинары, проверку знаний и первую помощь полностью в СДО!»",
+            taskTitle: "Точка принятия решения №1",
+            taskDesc: "Директор хочет полностью перевести весь курс, включая первую помощь, в формат дистанционного электронного обучения.",
+            options: [
+                {
+                    text: "Согласовать. Дистанционные технологии полностью разрешают онлайн-обучение по всем разделам.",
+                    correct: false,
+                    score: 0,
+                    feedback: "Ошибка! ПР-464 строго запрещает дистанционный формат для практических занятий по оказанию первой помощи."
+                },
+                {
+                    text: "Возразить: теории, вебинары и проверку знаний перевести в СДО можно, но практику по первой помощи обязаны провести очно.",
+                    correct: true,
+                    score: 100,
+                    feedback: "Верно! Закон разрешает СДО для лекций, вебинаров и тестов, но запрещает дистанционку для практических навыков первой помощи."
+                },
+                {
+                    text: "Предложить заменить практику по первой помощи просмотром учебного видеофильма в СДО.",
+                    correct: false,
+                    score: 0,
+                    feedback: "Ошибка! Видеоролик относится к учебно-методическим материалам, но не заменяет практическую отработку навыков."
+                }
+            ]
+        },
+        {
+            dialogue: "Начальник службы СИЗ: «Зачем тратить деньги на полигон? Мы выложили в СДО инструкции к респираторам и поясам монтажников. Пусть работники прочитают и сдадут онлайн-тест!»",
+            taskTitle: "Точка принятия решения №2",
+            taskDesc: "Согласование формата обучения правилам применения средств индивидуальной защиты (СИЗ).",
+            options: [
+                {
+                    text: "Отклонить предложение. Практические занятия по применению СИЗ нельзя проводить дистанционно.",
+                    correct: true,
+                    score: 100,
+                    feedback: "Правильно! Законодательство прямо исключает практические занятия по применению СИЗ из сферы применения дистанционных технологий."
+                },
+                {
+                    text: "Согласиться. Главное, чтобы СДО обеспечивала обмен информацией и электронную проверку знаний.",
+                    correct: false,
+                    score: 0,
+                    feedback: "Ошибка! Электронная проверка знаний разрешена, но формирование практических умений применения СИЗ дистанционно запрещено."
+                },
+                {
+                    text: "Разрешить дистанционный формат, если работники пришлют фото в правильно надетом СИЗ.",
+                    correct: false,
+                    score: 0,
+                    feedback: "Ошибка! Фотофиксация не является практическим занятием по формированию навыков в соответствии с нормативами."
+                }
+            ]
+        },
+        {
+            dialogue: "Руководитель учебного центра: «Мы планируем проводить практику для верхолазов и машинистов кранов полностью в VR-шлемах из дома, без выезда на полигоны. Это же законно?»",
+            taskTitle: "Точка принятия решения №3",
+            taskDesc: "Организация практических занятий на учебно-тренировочных полигонах и тренажерах.",
+            options: [
+                {
+                    text: "Согласовать. VR-тренажер полностью подпадает под определение информационно-телекоммуникационных сетей.",
+                    correct: false,
+                    score: 0,
+                    feedback: "Ошибка! Практические занятия на учебно-тренировочных полигонах и тренажерах прямо исключены из дистанционного формата."
+                },
+                {
+                    text: "Запретить удаленный формат. Практические занятия на полигонах и специализированных тренажерах проводятся только очно.",
+                    correct: true,
+                    score: 100,
+                    feedback: "Верно! Практика на полигонах и тренажерах входит в список исключений, для которых СДО использовать нельзя."
+                }
+            ]
+        }
+    ];
+
+    let currentStep = 0;
+    let totalScore = 0;
+
+    // Элементы UI
+    const dialogueText = document.getElementById('dialogue-text');
+    const taskTitle = document.getElementById('task-title');
+    const taskDesc = document.getElementById('task-desc');
+    const optionsContainer = document.getElementById('options-container');
+    const feedbackBox = document.getElementById('feedback-box');
+    const scoreVal = document.getElementById('score-val');
+    const stepTracker = document.getElementById('step-tracker');
+    const btnNext = document.getElementById('btn-next');
+    const gameScreen = document.getElementById('game-screen');
+    const finalScreen = document.getElementById('final-screen');
+    const finalScore = document.getElementById('final-score');
+    const finalFeedbackText = document.getElementById('final-feedback-text');
+    const footerControls = document.getElementById('footer-controls');
+    const btnRestart = document.getElementById('btn-restart');
+
+    function loadStep(index) {
+        const data = scenarios[index];
+        dialogueText.textContent = data.dialogue;
+        taskTitle.textContent = data.taskTitle;
+        taskDesc.textContent = data.taskDesc;
+        stepTracker.textContent = `Ситуация ${index + 1} из ${scenarios.length}`;
+        
+        feedbackBox.style.display = 'none';
+        btnNext.style.display = 'none';
+        optionsContainer.innerHTML = '';
+
+        data.options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-option';
+            btn.textContent = opt.text;
+            btn.onclick = () => selectOption(opt);
+            optionsContainer.appendChild(btn);
+        });
+    }
+
+    function selectOption(option) {
+        // Блокируем кнопки
+        const buttons = optionsContainer.querySelectorAll('.btn-option');
+        buttons.forEach(b => b.style.pointerEvents = 'none');
+
+        if (option.correct) {
+            totalScore += option.score;
+            scoreVal.textContent = totalScore;
+            feedbackBox.className = 'feedback-box success';
+        } else {
+            feedbackBox.className = 'feedback-box error';
+        }
+
+        feedbackBox.textContent = option.feedback;
+        feedbackBox.style.display = 'block';
+        btnNext.style.display = 'block';
+    }
+
+    btnNext.onclick = () => {
+        currentStep++;
+        if (currentStep < scenarios.length) {
+            loadStep(currentStep);
+        } else {
+            showFinal();
+        }
+    };
+
+    function showFinal() {
+        gameScreen.style.display = 'none';
+        footerControls.style.display = 'none';
+        finalScreen.style.display = 'flex';
+        finalScore.textContent = `${totalScore} / 300 баллов`;
+
+        if (totalScore === 300) {
+            finalFeedbackText.textContent = "Отличный результат! Вы отлично усвоили требования законодательства. Дистанционное обучение (СДО, вебинары, электронное тестирование) допускается для теоретической части, но строго запрещено для практики по первой помощи, применению СИЗ и занятий на полигонах.";
+        } else {
+            finalFeedbackText.textContent = "Вы допустили ошибки при разделении форматов. Запомните исключения: практические занятия по первой помощи, применению СИЗ, а также отработку на полигонах и тренажерах запрещено переводить в дистанционный формат.";
+        }
+    }
+
+    btnRestart.onclick = () => {
+        currentStep = 0;
+        totalScore = 0;
+        scoreVal.textContent = totalScore;
+        gameScreen.style.display = 'grid';
+        footerControls.style.display = 'flex';
+        finalScreen.style.display = 'none';
+        loadStep(0);
+    };
+
+    // --- РЕСАЙЗЕР И МАСШТАБИРОВАНИЕ ПОД ЭКРАН ---
+    function fitStage() {
+        const wrapper = document.getElementById('viewport-wrapper');
+        const stage = document.getElementById('app-stage');
+        
+        const wrapperWidth = wrapper.clientWidth;
+        const wrapperHeight = wrapper.clientHeight;
+        
+        const stageWidth = 960;
+        const stageHeight = 580;
+        
+        // Расчет коэффициента масштабирования с сохранением пропорций
+        const scaleX = wrapperWidth / stageWidth;
+        const scaleY = wrapperHeight / stageHeight;
+        const scale = Math.min(scaleX, scaleY, 1); // Не увеличиваем больше 100%
+
+        stage.style.transform = `scale(${scale})`;
+    }
+
+    window.addEventListener('resize', fitStage);
+    window.addEventListener('DOMContentLoaded', () => {
+        fitStage();
+        loadStep(0);
+    });
+</script>
+</body>
+</html>
