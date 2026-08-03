@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Учебный тренажёр — первая помощь и ПП РФ № 2464</title>
+<style>
+:root{
+  --bg:#0a1020;
+  --panel:#121d32;
+  --panel-2:#172640;
+  --line:#30435f;
+  --text:#edf3fb;
+  --muted:#9eafc6;
+  --red:#ff5b6e;
+  --red-soft:#6f2639;
+  --yellow:#ffd166;
+  --yellow-soft:#80601a;
+  --cyan:#7dd3fc;
+  --green:#6ee7b7;
+  --danger:#ff8a9a;
+}
+*{box-sizing:border-box}
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+  overflow:hidden;
+}
+body{display:flex;align-items:flex-start;justify-content:center}
+button{font:inherit;color:inherit}
+#app{
+  width:100vw;
+  height:min(600px,100dvh);
+  max-height:600px;
+  min-height:260px;
+  position:relative;
+  overflow:hidden;
+  background:radial-gradient(circle at 85% 0%,#192945 0,#0a1020 55%);
+}
+#viewport{position:absolute;inset:0;overflow:hidden}
+#stage{
+  position:absolute;
+  left:50%;top:50%;
+  width:1440px;height:600px;
+  transform-origin:center center;
+  background:linear-gradient(145deg,rgba(20,34,59,.98),rgba(8,14,28,.99));
+  border:1px solid #263957;
+  box-shadow:0 20px 60px rgba(0,0,0,.35);
+  overflow:hidden;
+}
+.topbar{
+  height:62px;
+  display:flex;
+  align-items:center;
+  gap:18px;
+  padding:0 24px;
+  border-bottom:1px solid rgba(120,153,195,.24);
+}
+.brand{display:flex;align-items:center;gap:10px;min-width:300px}
+.brand-mark{width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,var(--red),var(--yellow));position:relative}
+.brand-mark:after{content:"";position:absolute;inset:6px;border:2px solid var(--bg);border-radius:50%}
+.brand strong{font-size:14px;letter-spacing:.12em}
+.brand span{font-size:11px;color:var(--muted);letter-spacing:.08em}
+.step-nav{display:flex;align-items:center;gap:7px;margin-left:auto}
+.step-btn,.icon-btn{
+  border:1px solid var(--line);
+  background:rgba(20,34,57,.7);
+  border-radius:10px;
+  cursor:pointer;
+  transition:.18s ease;
+}
+.step-btn{height:34px;padding:0 12px;font-size:11px;display:flex;align-items:center;gap:7px;color:var(--muted)}
+.step-btn b{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:#253653;color:#c7d7ea;font-size:11px}
+.step-btn.active{border-color:var(--cyan);color:var(--text);background:#19314b}
+.step-btn.done{border-color:var(--green);color:var(--green)}
+.step-btn.done b{background:var(--green);color:#092117}
+.icon-btn{width:34px;height:34px;color:var(--muted);font-size:16px}
+.step-btn:hover,.icon-btn:hover{border-color:var(--cyan);color:var(--text)}
+.sourcebar{
+  height:34px;
+  padding:0 24px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  border-bottom:1px solid rgba(120,153,195,.16);
+  color:var(--muted);
+  font-size:10.5px;
+  letter-spacing:.02em;
+}
+.source-tag,.phase-tag{border-radius:999px;padding:4px 8px;font-size:9px;letter-spacing:.1em;font-weight:800}
+.source-tag{color:var(--cyan);background:rgba(125,211,252,.12);border:1px solid rgba(125,211,252,.35)}
+.phase-tag{margin-left:auto;color:var(--yellow);background:rgba(255,209,102,.12);border:1px solid rgba(255,209,102,.35)}
+#content{position:absolute;left:24px;right:24px;top:74px;bottom:34px}
+.pane{height:100%;width:100%}
+.eyebrow{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);font-weight:800;margin-bottom:5px}
+h1,h2,h3,p{margin:0}
+h2{font-size:23px;line-height:1.05;letter-spacing:-.02em}
+h3{font-size:14px}
+.sub{color:var(--muted);font-size:11px;line-height:1.35;margin-top:7px}
+.panel{
+  background:rgba(16,29,51,.82);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:15px;
+}
+.panel-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px}
+.panel-title span{font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.source-block{border:1px solid rgba(255,91,110,.34);background:rgba(111,38,57,.17);border-radius:11px;padding:10px;margin-bottom:9px}
+.source-block.current{border-color:rgba(255,209,102,.4);background:rgba(128,96,26,.16)}
+.source-block .label{font-size:9px;letter-spacing:.12em;text-transform:uppercase;font-weight:800;margin-bottom:5px}
+.source-block.old .label{color:var(--red)}
+.source-block.current .label{color:var(--yellow)}
+.source-block p{font-size:11px;line-height:1.3;color:#d6e0ee}
+.bullet-list{display:grid;gap:7px}
+.bullet{display:flex;gap:8px;align-items:flex-start;font-size:11px;line-height:1.28;color:#d6e0ee}
+.bullet:before{content:"";width:6px;height:6px;flex:0 0 6px;margin-top:4px;border-radius:50%;background:var(--cyan)}
+.note{font-size:10px;line-height:1.28;color:var(--muted);border-left:2px solid var(--cyan);padding-left:9px}
+.task-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.task-card{height:100%;display:flex;flex-direction:column}
+.role-grid{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:1fr 1fr;gap:9px;flex:1}
+.role-card,.equipment-card{
+  border:1px solid var(--line);
+  border-radius:11px;
+  background:rgba(24,42,70,.72);
+  text-align:left;
+  cursor:pointer;
+  padding:9px 10px;
+  transition:.16s ease;
+}
+.role-card{min-height:54px}
+.role-card:hover,.equipment-card:hover{border-color:#6b87aa;transform:translateY(-1px)}
+.role-card.selected,.equipment-card.selected{border-color:var(--cyan);background:rgba(27,67,92,.9);box-shadow:inset 3px 0 var(--cyan)}
+.role-card .r-top{display:flex;align-items:center;gap:7px}
+.role-card .check,.equipment-card .check{width:16px;height:16px;border:1px solid #617795;border-radius:5px;display:grid;place-items:center;font-size:11px;color:transparent;flex:0 0 16px}
+.role-card.selected .check,.equipment-card.selected .check{background:var(--cyan);border-color:var(--cyan);color:#092333}
+.role-card strong{font-size:11px;line-height:1.1}
+.role-card small{display:block;color:var(--muted);font-size:9.5px;line-height:1.18;padding-left:23px;margin-top:4px}
+.actions{display:flex;align-items:center;gap:8px;margin-top:10px}
+.primary,.secondary{
+  border-radius:10px;border:1px solid transparent;cursor:pointer;font-weight:800;font-size:11px;padding:9px 13px;transition:.16s ease
+}
+.primary{background:linear-gradient(135deg,#2c8cb0,#2674aa);border-color:#65c8ec;color:#f6fdff}
+.primary:hover{filter:brightness(1.12)}
+.secondary{background:rgba(34,53,82,.8);border-color:var(--line);color:#d7e4f3}
+.feedback{min-height:29px;margin-top:8px;border-radius:9px;padding:7px 9px;font-size:10px;line-height:1.25;color:var(--muted);background:rgba(8,15,28,.45);border:1px solid transparent}
+.feedback.good{color:var(--green);border-color:rgba(110,231,183,.35);background:rgba(49,120,93,.13)}
+.feedback.bad{color:var(--danger);border-color:rgba(255,138,154,.35);background:rgba(128,42,59,.13)}
+.stage-one{display:block}
+.stage-one .task-card{height:100%;width:100%}
+.evidence-grid{display:grid;gap:8px}
+.evidence-card{border:1px solid var(--line);border-radius:10px;padding:9px;background:rgba(23,39,65,.68)}
+.evidence-card .ref{color:var(--cyan);font-size:10px;font-weight:800;margin-bottom:4px}
+.evidence-card p{font-size:10px;line-height:1.25;color:#d6e0ee}
+.status-callout{margin-top:9px;padding:9px;border-radius:10px;border:1px dashed rgba(255,209,102,.55);color:#e8d39b;background:rgba(128,96,26,.1);font-size:9.5px;line-height:1.25}
+.stage-two{display:flex;flex-direction:column}
+.stage-two-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:9px}
+.topic-grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:9px;flex:1}
+.topic-card{border:1px solid var(--line);background:rgba(16,29,51,.82);border-radius:13px;padding:10px;display:flex;flex-direction:column;min-height:0}
+.topic-top{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.topic-no{width:23px;height:23px;border-radius:7px;background:rgba(125,211,252,.12);border:1px solid rgba(125,211,252,.35);display:grid;place-items:center;color:var(--cyan);font-weight:900;font-size:11px}
+.topic-top strong{font-size:12px}
+.decision{margin-left:auto;font-size:9px;color:var(--muted);border:1px solid var(--line);padding:3px 7px;border-radius:99px}
+.contrast{display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:1;min-height:0}
+.mini{border-radius:9px;padding:7px 8px;border:1px solid var(--line);min-height:0}
+.mini.old{background:rgba(111,38,57,.18);border-color:rgba(255,91,110,.32)}
+.mini.now{background:rgba(128,96,26,.15);border-color:rgba(255,209,102,.36)}
+.mini-label{display:block;font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:900;margin-bottom:4px}
+.mini.old .mini-label{color:var(--red)}
+.mini.now .mini-label{color:var(--yellow)}
+.mini p{font-size:10px;line-height:1.22;color:#dbe5f3}
+.choice-row{display:flex;gap:6px;margin-top:8px}
+.choice{flex:1;border:1px solid var(--line);background:rgba(28,46,75,.75);border-radius:8px;padding:6px 4px;font-size:9px;cursor:pointer;color:var(--muted);font-weight:700}
+.choice:hover{border-color:#6b87aa;color:var(--text)}
+.choice.selected{border-color:var(--cyan);background:rgba(39,100,130,.5);color:var(--text)}
+.choice.correct{border-color:var(--green);color:var(--green)}
+.stage-three{display:block}
+.stage-three .panel{height:100%}
+.equipment-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:13px}
+.equipment-card{min-height:58px;padding:8px}
+.equipment-card strong{display:block;font-size:10.5px;line-height:1.12;padding-left:23px}
+.equipment-card small{display:block;color:var(--muted);font-size:9px;line-height:1.14;padding-left:23px;margin-top:3px}
+.priority-title{display:flex;align-items:center;justify-content:space-between;margin-top:9px;margin-bottom:5px}
+.priority-title span{font-size:9px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+.priority-list{display:flex;gap:6px}
+.priority-chip{cursor:grab;border:1px solid var(--line);border-radius:8px;background:#1a2c48;color:#c9d9eb;padding:6px 8px;font-size:9px;flex:1;text-align:center}
+.priority-chip:active{cursor:grabbing}
+.rule-big{font-size:18px;font-weight:900;color:var(--yellow);margin:2px 0 4px}
+.rule-sub{font-size:10px;color:var(--muted);line-height:1.25;margin-bottom:9px}
+.rule-row{display:flex;gap:7px;align-items:flex-start;border-top:1px solid rgba(48,67,95,.7);padding:8px 0;font-size:10px;line-height:1.22;color:#d8e2ef}
+.rule-row:first-of-type{border-top:0}
+.rule-row b{color:var(--yellow);font-size:9px;min-width:29px}
+.final-banner{margin-top:8px;padding:8px 9px;border-radius:10px;border:1px solid rgba(110,231,183,.36);background:rgba(49,120,93,.13);color:var(--green);font-size:10px;line-height:1.25}
+.footer{position:absolute;left:24px;right:24px;bottom:8px;height:18px;display:flex;align-items:center;gap:10px;color:var(--muted);font-size:9.5px}
+.progress{height:4px;flex:1;background:#1c2b44;border-radius:99px;overflow:hidden}
+.progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));border-radius:99px;transition:.25s ease}
+.footer-right{display:flex;align-items:center;gap:8px}
+.toast{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);padding:8px 14px;border-radius:9px;background:#172a44;border:1px solid var(--cyan);color:#e8f8ff;font-size:10px;opacity:0;pointer-events:none;transition:.2s ease;z-index:5}
+.toast.show{opacity:1}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+</head>
+<body>
+<div id="app">
+  <div id="viewport">
+    <div id="stage">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark"></div>
+          <div><strong>ТРЕНАЖЁР</strong><br><span>ПЕРВАЯ ПОМОЩЬ · № 2464</span></div>
+        </div>
+        <div class="step-nav" id="stepNav"></div>
+        <button class="icon-btn" id="resetBtn" title="Начать заново">↺</button>
+      </header>
+      <main id="content"></main>
+      <div class="footer">
+        <span id="progressText">0 из 3 этапов</span>
+        <div class="progress"><i id="progressBar"></i></div>
+        <div class="footer-right"><button class="secondary" id="downloadBtn">Скачать план</button></div>
+      </div>
+      <div class="toast" id="toast"></div>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  const BASE_W=1440, BASE_H=600;
+  const viewport=document.getElementById('viewport');
+  const stage=document.getElementById('stage');
+  const content=document.getElementById('content');
+  const stepNav=document.getElementById('stepNav');
+  const toast=document.getElementById('toast');
+  const state={stage:1,roles:new Set(),topics:{},equipment:new Set(),priority:['Тренажёры','Медицинские изделия','Наглядные пособия'],done:[false,false,false]};
+
+  const roles=[
+    {id:'employer',title:'Директор предприятия',meta:'готов утвердить приказ и программу',ok:true},
+    {id:'appointed',title:'Мастер участка',meta:'назначен для инструктажей; прошёл подготовку по первой помощи',ok:true},
+    {id:'specialist',title:'Специалист по охране труда',meta:'8 часов первой помощи и повышение квалификации для преподавателей',ok:true},
+    {id:'provider',title:'Учебная организация',meta:'готова предоставить преподавателя и провести обучение',ok:true},
+    {id:'random',title:'Кадровик',meta:'ведёт учёт работников; подготовки по первой помощи нет',ok:false},
+    {id:'buyer',title:'Заведующий складом',meta:'прошёл короткий инструктаж; приказа и подготовки нет',ok:false}
+  ];
+
+  const topics=[
+    {id:'program',num:'01',name:'Паспорт программы',prompt:'Виртуальное предприятие использует старую программу из файла: четыре тематических блока, но расписание и практическая часть не приведены к новой схеме. Что сделать перед запуском?',choices:{keep:'Оставить как есть',update:'Переписать программу и расписание',theory:'Оставить только теорию'},correct:'update'},
+    {id:'bleed',num:'02',name:'Наружное кровотечение',prompt:'В старом плане блок про наружные кровотечения и остановку крови находится внутри темы 3. Куда его отнести в новой структуре?',choices:{t2:'Тема 2',t3:'Тема 3',t4:'Тема 4'},correct:'t2'},
+    {id:'cpr',num:'03',name:'Сознание, дыхание и СЛР',prompt:'В старом плане признаки жизни, СЛР, дыхательные пути и инородное тело разбросаны между темами 2 и 3. Куда собрать этот блок?',choices:{t2:'Тема 2',t3:'Тема 3',t4:'Тема 4'},correct:'t3'},
+    {id:'trauma',num:'04',name:'Травмы и другие состояния',prompt:'В старом плане ожоги, отравления и психологическая поддержка собраны отдельно, а травмы описаны в теме 3. Куда собрать расширенный блок?',choices:{t2:'Тема 2',t3:'Тема 3',t4:'Тема 4'},correct:'t4'}
+  ];
+
+  const equipment=[
+    {id:'cpr',title:'Манекен взрослого и учебный AED',meta:'учебный комплект · 62 000 ₽',ok:true},
+    {id:'airway',title:'Тренажёр дыхательных путей и инородного тела',meta:'учебный комплект · 44 000 ₽',ok:true},
+    {id:'bleed',title:'Тренажёр кровотечения, жгуты и повязки',meta:'учебный комплект · 38 000 ₽',ok:true},
+    {id:'trauma',title:'Средства для перевязки, иммобилизации и перемещения',meta:'учебный комплект · 31 000 ₽',ok:true},
+    {id:'visual',title:'Карточки алгоритмов и плакаты для занятий',meta:'комплект пособий · 12 000 ₽',ok:true},
+    {id:'notes',title:'Только презентация на экране',meta:'без учебного оснащения · 18 000 ₽',ok:false},
+    {id:'clinical',title:'Боевой клинический дефибриллятор',meta:'медицинское оборудование · 350 000 ₽',ok:false}
+  ];
+
+  function esc(value){return String(value).replace(/[&<>"']/g,function(ch){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'})[ch]})}
+  function showToast(text){toast.textContent=text;toast.classList.add('show');clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>toast.classList.remove('show'),2200)}
+  function fitStage(){
+    const w=viewport.clientWidth||window.innerWidth;
+    const h=viewport.clientHeight||600;
+    const s=Math.min(w/BASE_W,h/BASE_H);
+    stage.style.transform='translate(-50%,-50%) scale('+Math.max(.1,s)+')';
+  }
+  if(window.ResizeObserver){new ResizeObserver(fitStage).observe(viewport)}
+  window.addEventListener('resize',fitStage,{passive:true});
+
+  function renderNav(){
+    const labels=['Назначаем','Актуализируем','Закупаем'];
+    stepNav.innerHTML=labels.map((label,i)=>{
+      const n=i+1, cls=(state.stage===n?'active ':'')+(state.done[i]?'done':'');
+      return '<button class="step-btn '+cls+'" data-go="'+n+'"><b>'+n+'</b>'+label+'</button>';
+    }).join('');
+    stepNav.querySelectorAll('[data-go]').forEach(btn=>btn.addEventListener('click',()=>{state.stage=Number(btn.dataset.go);render()}));
+    const finished=state.done.filter(Boolean).length;
+    document.getElementById('progressText').textContent=finished+' из 3 этапов';
+    document.getElementById('progressBar').style.width=(finished/3*100)+'%';
+  }
+
+  function renderStep1(){
+    content.innerHTML=''
+      +'<section class="pane stage-one">'
+      +'<div class="panel task-card">'
+      +'<div class="task-head"><div><div class="eyebrow">Этап 1 / 3 · задание</div><h2>Назначаем ответственных</h2><p class="sub">Выберите всех, кто может организовать или проводить обучение по первой помощи. Нажмите «Проверить выбор», чтобы получить ответ и пояснение.</p></div><span class="decision">6 вариантов</span></div>'
+      +'<div class="role-grid">'+roles.map(r=>'<button class="role-card '+(state.roles.has(r.id)?'selected':'')+'" data-role="'+r.id+'" aria-pressed="'+state.roles.has(r.id)+'"><div class="r-top"><span class="check">✓</span><strong>'+esc(r.title)+'</strong></div><small>'+esc(r.meta)+'</small></button>').join('')+'</div>'
+      +'<div class="actions"><button class="primary" id="check1">Проверить выбор</button><button class="secondary" id="clear1">Сбросить</button></div><div class="feedback" id="feedback1">Пояснение появится после проверки.</div>'
+      +'</div>'
+      +'</section>';
+    content.querySelectorAll('[data-role]').forEach(btn=>btn.addEventListener('click',()=>{const id=btn.dataset.role;if(state.roles.has(id))state.roles.delete(id);else state.roles.add(id);renderStep1();renderNav()}));
+    document.getElementById('clear1').addEventListener('click',()=>{state.roles.clear();state.done[0]=false;render()});
+    document.getElementById('check1').addEventListener('click',()=>{
+      const right=roles.filter(r=>r.ok).map(r=>r.id);
+      const good=right.every(id=>state.roles.has(id)) && state.roles.size===right.length;
+      state.done[0]=good;
+      const box=document.getElementById('feedback1');box.className='feedback '+(good?'good':'bad');
+      box.textContent=good?'Ответ верный. Пояснение: работодатель организует процесс; проводить обучение можно назначенному и квалифицированному лицу или внешнему провайдеру. Основание: пп. 33, 35, 122.':'Ответ неполный. Уберите роли без подготовки и выберите работодателя, назначенного работника, квалифицированного специалиста/инструктора и обучающую организацию или ИП. Основание: пп. 33, 35, 122.';
+      renderNav();
+    });
+  }
+
+  function renderStep2(){
+    content.innerHTML=''
+      +'<section class="pane stage-two">'
+      +'<div class="stage-two-head"><div><div class="eyebrow">Этап 2 / 3 · задание</div><h2>Актуализируем темы обучения</h2><p class="sub">На виртуальном предприятии действует старая программа. Примите четыре решения для новой редакции, затем проверьте себя.</p></div><span class="decision">4 решения</span></div>'
+      +'<div class="topic-grid">'+topics.map(t=>{
+        const selected=state.topics[t.id]||'';
+        const selectedLabel=selected?(t.choices[selected]||'выбрано'):'решение';
+        return '<article class="topic-card"><div class="topic-top"><span class="topic-no">'+t.num+'</span><strong>'+esc(t.name)+'</strong><span class="decision">'+esc(selectedLabel)+'</span></div><div class="mini old" style="flex:1"><span class="mini-label">Ситуация на предприятии</span><p>'+esc(t.prompt)+'</p></div><div class="choice-row">'+Object.keys(t.choices).map(key=>'<button class="choice '+(selected===key?'selected':'')+'" data-topic="'+t.id+'" data-choice="'+key+'">'+esc(t.choices[key])+'</button>').join('')+'</div></article>';
+      }).join('')+'</div>'
+      +'<div class="actions"><button class="primary" id="check2">Проверить решения</button><button class="secondary" id="clear2">Сбросить</button><div class="feedback" id="feedback2">Пояснение появится после проверки.</div></div>'
+      +'</section>';
+    content.querySelectorAll('[data-topic]').forEach(btn=>btn.addEventListener('click',()=>{state.topics[btn.dataset.topic]=btn.dataset.choice;renderStep2();renderNav()}));
+    document.getElementById('clear2').addEventListener('click',()=>{state.topics={};state.done[1]=false;render()});
+    document.getElementById('check2').addEventListener('click',()=>{
+      const good=topics.every(t=>state.topics[t.id]===t.correct);state.done[1]=good;const box=document.getElementById('feedback2');box.className='feedback '+(good?'good':'bad');box.textContent=good?'Ответ верный. Пояснение: программу нужно привести к новой структуре; наружные кровотечения относятся к теме 2, сознание/дыхание/СЛР — к теме 3, травмы и прочие состояния — к теме 4.':'Есть ошибки. Сначала распределите блоки по их содержанию, затем перепишите паспорт программы и расписание под новую структуру. После проверки сверяйтесь с лекцией.';renderNav();
+    });
+  }
+
+  function renderStep3(){
+    content.innerHTML=''
+      +'<section class="pane stage-three">'
+      +'<div class="panel">'
+      +'<div class="panel-title"><div><div class="eyebrow">Этап 3 / 3 · задание</div><h2>Закупаем оборудование для занятий</h2><p class="sub">Отметьте минимальный учебный комплект, который нужен для практических занятий. Затем расставьте три категории по приоритету.</p></div><span class="decision">7 вариантов</span></div>'
+      +'<div class="equipment-grid">'+equipment.map(e=>'<button class="equipment-card '+(state.equipment.has(e.id)?'selected':'')+'" data-equip="'+e.id+'" aria-pressed="'+state.equipment.has(e.id)+'"><span class="check">✓</span><strong>'+esc(e.title)+'</strong><small>'+esc(e.meta)+'</small></button>').join('')+'</div>'
+      +'<div class="priority-title"><span>Задание: расставьте приоритеты закупки · перетащите</span><span>3 категории</span></div><div class="priority-list" id="priorityList">'+state.priority.map((x,i)=>'<div class="priority-chip" data-priority="'+esc(x)+'">'+(i+1)+' · '+esc(x)+'</div>').join('')+'</div>'
+      +'<div class="actions"><button class="primary" id="check3">Проверить комплект</button><button class="secondary" id="clear3">Сбросить</button></div><div class="feedback" id="feedback3">Пояснение появится после проверки.</div>'
+      +(state.done.every(Boolean)?'<div class="final-banner">Тренажёр пройден. Последовательность решения: назначить ответственных → переразложить темы → закупить оснащение.</div>':'')
+      +'</div>'
+      +'</section>';
+    content.querySelectorAll('[data-equip]').forEach(btn=>btn.addEventListener('click',()=>{const id=btn.dataset.equip;if(state.equipment.has(id))state.equipment.delete(id);else state.equipment.add(id);renderStep3();renderNav()}));
+    if(window.Sortable){new Sortable(document.getElementById('priorityList'),{animation:140,ghostClass:'priority-ghost',onEnd:()=>{state.priority=[...document.querySelectorAll('.priority-chip')].map(x=>x.dataset.priority);renderStep3()}})}
+    document.getElementById('clear3').addEventListener('click',()=>{state.equipment.clear();state.done[2]=false;render()});
+    document.getElementById('check3').addEventListener('click',()=>{const required=equipment.filter(e=>e.ok).map(e=>e.id);const good=required.every(id=>state.equipment.has(id))&&state.equipment.size===required.length;state.done[2]=good;const box=document.getElementById('feedback3');box.className='feedback '+(good?'good':'bad');box.textContent=good?'Ответ верный. Пояснение: п. 36 требует практику не менее 50% часов и технические средства обучения — тренажёры, медицинские изделия и наглядные пособия. П. 37 требует проверить знания, умения и навыки.':'Ответ неполный. Уберите «только презентацию» и боевой дефибриллятор; выберите все пять учебных позиций. Пояснение: п. 36 требует тренажёры, медицинские изделия и наглядные пособия.';renderNav();});
+  }
+
+  function render(){renderNav();if(state.stage===1)renderStep1();if(state.stage===2)renderStep2();if(state.stage===3)renderStep3();fitStage()}
+
+  document.getElementById('resetBtn').addEventListener('click',()=>{state.stage=1;state.roles.clear();state.topics={};state.equipment.clear();state.done=[false,false,false];render();showToast('Тренажёр сброшен')});
+  document.getElementById('downloadBtn').addEventListener('click',()=>{
+    const lines=[
+      'ПЛАН ПЕРЕНАСТРОЙКИ ОБУЧЕНИЯ ПЕРВОЙ ПОМОЩИ',
+      'Источник: 2464_новая_редакция.pdf; пункты 32–37, 122; приложения № 1–2.',
+      'Статус: приложение № 2 в приложенном PDF помечено как редакция с 31.08.2026.',
+      '',
+      '1. НАЗНАЧАЕМ ОТВЕТСТВЕННЫХ',
+      'Работодатель организует процесс; назначенный работник проводит инструктажи; квалифицированный специалист/инструктор или внешний провайдер проводит обучение по требованиям пп. 33–35.',
+      '',
+      '2. АКТУАЛИЗИРУЕМ ТЕМЫ',
+      'Тема 1 — обновить; темы 2 и 3 — перераспределить по новой логике кровотечения / сознание-дыхание-СЛР; тема 4 — расширить и обновить по приложению № 2.',
+      '',
+      '3. ЗАКУПАЕМ ОБОРУДОВАНИЕ',
+      'Тренажёры СЛР/AED и дыхательных путей; тренажёр кровотечения и повязки/жгуты; учебные медизделия для травм; наглядные пособия. Практика — не менее 50% часов, самостоятельная программа — не менее 8 часов.',
+      '',
+      'Прикладное решение не заменяет юридическую проверку даты вступления редакции в силу.'
+    ];
+    const blob=new Blob([lines.join('\n')],{type:'text/plain;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='план_обучения_первая_помощь_2464.txt';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500);showToast('План скачан');
+  });
+  render();
+})();
+</script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"1954b47c125f43f8b4338b3c4f804e4f"}' crossorigin="anonymous"></script>
+</body>
+</html>
