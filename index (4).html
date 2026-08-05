@@ -1,0 +1,619 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Организуем обучение по охране труда — учебный тренажёр</title>
+  <style>
+    :root {
+      --ink: #eaf3ff;
+      --muted: #9bb0c8;
+      --line: rgba(164, 196, 226, .18);
+      --navy: #08182d;
+      --panel: #102743;
+      --panel-2: #0d2139;
+      --blue: #4b9cff;
+      --aqua: #31d2c0;
+      --yellow: #ffc44d;
+      --danger: #ff6e7f;
+      --success: #44d491;
+      --font-scale: 1;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      width: 100vw;
+      max-width: 100vw;
+      height: 100vh;
+      max-height: 600px;
+      margin: 0;
+      overflow: hidden;
+      background: #061426;
+    }
+    body {
+      display: grid;
+      place-items: center;
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: clamp(14px, 1.5vw, 17px);
+      letter-spacing: .01em;
+    }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible { outline: 3px solid var(--yellow); outline-offset: 2px; }
+
+    #app {
+      position: relative;
+      width: 100vw;
+      max-width: 100vw;
+      height: min(600px, 100vh);
+      max-height: 600px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 73% 4%, rgba(44, 124, 212, .28), transparent 33%),
+        radial-gradient(circle at 7% 100%, rgba(35, 201, 177, .15), transparent 28%),
+        #07182c;
+    }
+
+    #trainer {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      max-height: 600px;
+      min-height: 0;
+      overflow: hidden;
+      border: 1px solid rgba(166, 203, 234, .18);
+      isolation: isolate;
+    }
+    #trainer::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      opacity: .22;
+      background-image: linear-gradient(rgba(143, 201, 255, .055) 1px, transparent 1px), linear-gradient(90deg, rgba(143, 201, 255, .055) 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none;
+    }
+
+    .topbar {
+      height: 66px;
+      max-height: 600px;
+      padding: 10px 18px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(90deg, rgba(7,25,46,.93), rgba(16,44,74,.78));
+    }
+    .brand { min-width: 260px; display: flex; gap: 10px; align-items: center; }
+    .brand-mark {
+      width: 38px; height: 38px; flex: 0 0 38px; display: grid; place-items: center;
+      color: #041426; font-weight: 900; border-radius: 12px;
+      background: linear-gradient(135deg, var(--aqua), #69b5ff);
+      box-shadow: 0 0 24px rgba(49,210,192,.28);
+    }
+    .brand h1 { font-size: clamp(14px, 1.48vw, 18px); line-height: 1.06; margin: 0; font-weight: 770; }
+    .brand p { font-size: 11px; color: var(--muted); margin: 3px 0 0; }
+    .top-spacer { flex: 1; }
+    .deadline { white-space: nowrap; font-size: 12px; color: #bed1e6; }
+    .deadline b { display: inline-block; color: var(--yellow); margin-left: 4px; }
+    .progress-box { width: min(195px, 19vw); }
+    .progress-line { height: 7px; overflow: hidden; border-radius: 99px; background: rgba(171, 201, 230, .16); }
+    .progress-line > span { display: block; height: 100%; width: 0%; border-radius: inherit; background: linear-gradient(90deg, var(--aqua), #72a8ff); transition: width .35s ease; }
+    .progress-text { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 11px; color: var(--muted); }
+    .icon-button, .compact-btn {
+      border: 1px solid var(--line); color: var(--ink); background: rgba(127,176,222,.09);
+      border-radius: 10px; min-height: 36px; padding: 0 10px; transition: .2s ease;
+    }
+    .icon-button:hover, .compact-btn:hover { border-color: rgba(100,174,255,.7); background: rgba(61,146,239,.17); }
+    .scale-control { display: flex; align-items: center; gap: 7px; color: var(--muted); font-size: 11px; white-space: nowrap; }
+    .scale-control input { width: 70px; accent-color: var(--aqua); }
+
+    .main-layout {
+      height: calc(100% - 66px);
+      max-height: 600px;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 218px minmax(0, 1fr);
+    }
+    .side-nav {
+      position: relative;
+      padding: 13px 10px 12px;
+      max-height: 600px;
+      overflow: hidden;
+      border-right: 1px solid var(--line);
+      background: rgba(5, 20, 39, .53);
+    }
+    .nav-caption { padding: 0 10px 10px; text-transform: uppercase; color: #7592b1; letter-spacing: .13em; font-size: 10px; font-weight: 800; }
+    .nav-list { display: grid; gap: 5px; }
+    .nav-item {
+      width: 100%; min-height: 52px; display: flex; align-items: center; gap: 10px;
+      padding: 7px 9px; border-radius: 12px; border: 1px solid transparent;
+      background: transparent; color: #bed1e3; text-align: left;
+    }
+    .nav-item:hover { background: rgba(101, 168, 232, .1); }
+    .nav-item.active { color: #fff; border-color: rgba(76,160,255,.45); background: linear-gradient(90deg, rgba(44,132,225,.24), rgba(44,132,225,.05)); }
+    .nav-item.done .nav-dot { background: var(--success); color: #062318; }
+    .nav-dot { width: 29px; height: 29px; flex: 0 0 29px; display: grid; place-items: center; border-radius: 9px; font-size: 14px; font-weight: 850; color: var(--aqua); background: rgba(49,210,192,.11); }
+    .nav-copy { min-width: 0; }
+    .nav-copy b { display: block; font-size: 12px; line-height: 1.15; }
+    .nav-copy small { display: block; margin-top: 3px; color: #7892ad; font-size: 10px; white-space: nowrap; }
+    .nav-footer { position: absolute; bottom: 12px; left: 20px; right: 20px; padding-top: 11px; border-top: 1px solid var(--line); color: #7892ad; font-size: 10px; line-height: 1.35; }
+
+    .workspace { position: relative; max-height: 600px; min-width: 0; min-height: 0; overflow: hidden; }
+    .scene { height: 100%; max-height: 600px; padding: 14px 18px 15px; overflow: hidden; }
+    .scene-head { min-height: 48px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .eyebrow { margin: 0 0 4px; text-transform: uppercase; color: var(--aqua); font-size: 10px; letter-spacing: .14em; font-weight: 800; }
+    .scene-title { font-size: clamp(18px, 2vw, 25px); line-height: 1.06; margin: 0; letter-spacing: -.025em; }
+    .scene-subtitle { margin: 5px 0 0; color: #9fb5ca; font-size: 12px; line-height: 1.35; }
+    .chip { flex: 0 0 auto; padding: 7px 10px; border-radius: 99px; background: rgba(255,196,77,.1); color: #ffd57c; border: 1px solid rgba(255,196,77,.25); font-size: 11px; font-weight: 750; }
+
+    .map-intro { height: calc(100% - 52px); max-height: 600px; display: grid; grid-template-columns: 1.18fr .82fr; gap: 13px; }
+    .map-board, .brief-card, .task-panel, .lesson-panel, .checklist, .mini-card { border: 1px solid var(--line); border-radius: 16px; background: linear-gradient(145deg, rgba(20,55,89,.74), rgba(9,31,55,.78)); box-shadow: 0 13px 30px rgba(1,10,25,.17); }
+    .map-board { position: relative; overflow: hidden; padding: 13px; }
+    .map-board::before { content:""; position:absolute; inset:0; opacity:.26; background:linear-gradient(90deg, rgba(6,24,43,.88), rgba(6,24,43,.35)), url('assets/factory-safety-quest.png') center / cover no-repeat; pointer-events:none; }
+    .map-board::after { content:""; position:absolute; left:13%; right:7%; top:49%; border-top: 1px dashed rgba(89,188,228,.38); transform: rotate(-8deg); pointer-events:none; }
+    .site-grid { position: relative; z-index: 1; height: 100%; display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(3, 1fr); gap: 10px; }
+    .site-card { position: relative; padding: 10px; min-width: 0; border-radius: 14px; border: 1px solid rgba(157,202,239,.18); color: #eaf5ff; background: linear-gradient(135deg, rgba(37,91,143,.69), rgba(10,43,76,.94)); text-align: left; overflow: hidden; }
+    .site-card::before { content:""; position:absolute; width:65px;height:65px; right:-18px;bottom:-27px; border: 15px solid rgba(60,214,193,.13); border-radius: 18px; transform:rotate(26deg); }
+    .site-card:hover { border-color: rgba(83,182,255,.9); transform: translateY(-1px); }
+    .site-card b { display:block; position:relative; z-index:1; font-size:13px; }
+    .site-card span { position:relative; z-index:1; display:block; margin-top:5px; color:#b5cbde; font-size:10px; line-height:1.25; }
+    .site-card .site-no { position:relative; z-index:1; display:inline-grid; place-items:center; width:23px;height:23px;margin-bottom:7px;border-radius:7px;background:rgba(5,18,34,.38);color:var(--aqua);font-weight:800;font-size:11px; }
+    .site-card.locked { opacity: .68; }
+    .brief-stack { display: grid; grid-template-rows: 1.1fr .85fr; gap: 12px; min-height: 0; }
+    .brief-card { padding: 14px; overflow: hidden; }
+    .brief-card h3 { margin: 0 0 8px; font-size: 14px; }
+    .brief-card p { margin: 0; color:#b0c3d5; font-size: 12px; line-height: 1.4; }
+    .date-box { display: flex; gap: 10px; margin: 12px 0; align-items:center; }
+    .calendar-day { width: 40px; height: 42px; display:grid; place-items:center; border-radius:11px; background: linear-gradient(135deg, var(--yellow), #ff9f57); color:#342103; font-size:18px; font-weight:900; }
+    .date-box strong { display:block; font-size:12px; } .date-box small { color:#8faac3; font-size:10px; }
+    .fact-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+    .fact-list li { display:flex; align-items:center; gap:8px; color:#bcd0e1; font-size:11px; }
+    .fact-list i { width:6px;height:6px;border-radius:50%;background:var(--aqua);box-shadow:0 0 10px var(--aqua); }
+    .start-button { width:100%; margin-top:11px; padding:9px 12px; border:0; border-radius:10px; color:#051b2e; background:linear-gradient(100deg, var(--aqua), #7ddcff); font-weight:850; font-size:12px; }
+    .start-button:hover { filter: brightness(1.08); }
+
+    .mission-body { height: calc(100% - 55px); max-height: 600px; display: grid; grid-template-columns: minmax(0, 1fr) 225px; gap: 13px; }
+    .task-panel { position: relative; padding: 13px; overflow: hidden; }
+    .task-copy { color: #c1d2e1; font-size: 13px; line-height: 1.4; margin: 0 0 10px; }
+    .task-copy b { color: #fff; }
+    .lesson-panel { padding: 12px; overflow: hidden; }
+    .lesson-panel h3 { margin: 0 0 8px; font-size: 13px; }
+    .lesson-panel p { margin: 0; color: #bfd0de; font-size: 12px; line-height: 1.42; }
+    .legal-tag { display:inline-block; margin-top:8px; padding:4px 7px; color:#abdfff; border:1px solid rgba(105,183,255,.26); border-radius:7px; background:rgba(55,129,201,.12); font-size:10px; font-weight:700; }
+    .lesson-points { display:grid; gap:8px; margin-top:12px; }
+    .lesson-point { display:flex; gap:8px; align-items:flex-start; font-size:11px; line-height:1.25; color:#bdd0e1; }
+    .lesson-point span { width:17px; height:17px; flex:0 0 17px; display:grid;place-items:center; border-radius:50%; color:#06253a; background:var(--aqua); font-size:10px; font-weight:900; }
+    .hint-button { width:100%; margin-top:12px; padding:8px; border:1px dashed rgba(116,183,237,.5); border-radius:9px; background:transparent; color:#a6d8ff; font-size:11px; }
+
+    .document-paper { height: calc(100% - 79px); max-height: 600px; padding: 10px; border-radius:12px; background:linear-gradient(125deg, #e5eef6, #c9d6e0); color:#172b3d; box-shadow: inset 0 0 0 1px rgba(255,255,255,.55); overflow:hidden; }
+    .document-header { display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:7px; border-bottom:1px solid #a9bac7; }
+    .document-header small { display:block; color:#506476; font-size:9px; } .document-header b { font-size:11px; }
+    .error-list { display:grid; gap:6px; margin-top:7px; }
+    .error-row { display:grid; grid-template-columns: 22px minmax(0,1fr); gap:7px; align-items:start; padding:6px 7px; border-left:3px solid #c5d4df; background:rgba(255,255,255,.43); border-radius:5px; }
+    .error-row.fixed { border-left-color:#1fa86a; background:rgba(109,219,163,.14); }
+    .error-row .number { width:18px;height:18px; display:grid; place-items:center; border-radius:50%; background:#54718b;color:white; font-size:9px; font-weight:800; }
+    .error-row.fixed .number { background:#13935b; }
+    .error-row p { margin:0 0 4px; color:#263b4b; font-size:11px; line-height:1.27; }
+    .choice-row { display:flex; gap:5px; }
+    .choice { flex:1; min-width:0; padding:5px 6px; color:#314b60; border:1px solid #a9becd; border-radius:5px; background:#edf3f6; text-align:left; font-size:10px; line-height:1.16; }
+    .choice:hover { background:#d9eaff; border-color:#4c9dce; }
+    .choice.selected { color:#0c5135; border-color:#1ba86b; background:#d7f4e5; }
+    .choice.wrong { color:#8b2436; border-color:#d45465; background:#fee4e7; }
+    .task-actions { display:flex; justify-content:space-between; gap:9px; align-items:center; height: 66px; padding-top: 9px; }
+    .task-status { color:#8ba7bf; font-size:11px; }
+    .task-status.good { color:#76e2ad; }
+    .primary-btn, .secondary-btn { padding:9px 12px; border-radius:9px; font-size:11px; font-weight:800; }
+    .primary-btn { color:#041c2c; border:0; background:linear-gradient(100deg, #50d7c8, #67aaff); }
+    .primary-btn:hover { filter:brightness(1.08); }
+    .action-group { display:flex; align-items:center; gap:7px; }
+    .next-btn { color:#052237; border:1px solid rgba(157,229,255,.65); background:linear-gradient(100deg,#d0f6ff,#8ed3ff); }
+    .secondary-btn { color:#c7dff2; border:1px solid rgba(142,193,236,.35); background:rgba(57,112,159,.12); }
+
+    .contract-sheet { height:calc(100% - 82px); max-height:600px; padding:11px; border-radius:12px; background:linear-gradient(125deg,#eff5f6,#dce8eb); color:#203749; overflow:hidden; }
+    .contract-top { display:flex; justify-content:space-between; gap:8px; padding-bottom:7px; border-bottom:1px solid #b1c4cf; } .contract-top b{font-size:12px}.contract-top small{font-size:9px;color:#536b7a;}
+    .clause-grid { display:grid; grid-template-columns:repeat(2, 1fr); gap:6px; margin-top:8px; }
+    .clause { min-height:55px; position:relative; padding:7px 7px 7px 26px; border:1px solid #b2c5cf; border-radius:7px; background:rgba(255,255,255,.53); color:#263e51; text-align:left; font-size:10px; line-height:1.23; }
+    .clause::before { content:""; position:absolute; left:8px;top:8px; width:11px;height:11px;border:1px solid #7893a6;border-radius:3px;background:white; }
+    .clause.selected::before { content:"✓"; display:grid;place-items:center; color:#fff; border-color:#169760;background:#16a66a;font-size:9px;font-weight:900; }
+    .clause.selected { border-color:#45ad82; background:#e0f5e8; }
+    .clause.incorrect { border-color:#e76571; background:#fde6e8; }
+    .contract-note { margin-top:8px; padding:6px 8px; border-radius:6px; color:#6d5160; background:#faecdc; font-size:9px; }
+
+    .staff-grid { height:calc(100% - 82px); max-height:600px; display:grid; grid-template-columns:repeat(2, 1fr); gap:7px; overflow:hidden; }
+    .staff-card { min-width:0; padding:8px; border:1px solid rgba(164,200,228,.22); border-radius:10px; background:rgba(7,30,54,.46); overflow:hidden; }
+    .staff-card.complete { border-color:rgba(62,213,148,.7); background:rgba(37,144,104,.12); }
+    .staff-name { display:flex;justify-content:space-between;gap:5px;align-items:center; } .staff-name b{font-size:11px}.staff-name small{font-size:9px;color:#86a5be;text-align:right;}
+    .staff-context { margin:5px 0 6px; color:#b9ccdc;font-size:10px;line-height:1.25; }
+    .staff-options { display:grid; gap:3px; }
+    .staff-option { width:100%; padding:5px 6px; border:1px solid rgba(151,191,224,.22); border-radius:5px; color:#d2e0ea; background:rgba(93,144,187,.1); text-align:left; font-size:10px; line-height:1.17; }
+    .staff-option:hover { border-color:#52a7ed; }
+    .staff-option.selected { color:#05231a; border-color:#40d391; background:#6ee1ae; font-weight:750; }
+    .staff-option.wrong { color:#ffe0e3; border-color:#db6372; background:rgba(201,57,77,.23); }
+
+    .practice-board { height:calc(100% - 82px); max-height:600px; display:grid; grid-template-columns:.87fr 1.13fr; gap:9px; overflow:hidden; }
+    .practice-zone { position:relative; min-width:0; padding:10px; border-radius:11px; border:1px solid rgba(100,179,244,.22); background:linear-gradient(135deg,rgba(21,68,109,.66),rgba(8,34,62,.6)); overflow:hidden; }
+    .practice-zone h4 { margin:0 0 6px; color:#dff3ff;font-size:11px; }
+    .practice-zone p { margin:0;color:#bcd0df;font-size:11px;line-height:1.35; }
+    .zone-symbol { position:absolute;right:9px;bottom:9px;width:42px;height:42px;display:grid;place-items:center;border-radius:12px;background:rgba(54,209,191,.13);color:var(--aqua);font-size:23px; }
+    .plan-list { display:grid;grid-template-columns:repeat(2,1fr); gap:6px; }
+    .plan-card { min-height:69px;padding:8px; position:relative;border:1px solid rgba(161,203,233,.24);border-radius:8px;background:rgba(4,25,46,.44);color:#d2e4f0;text-align:left;font-size:10px;line-height:1.25; }
+    .plan-card::after { content:""; position:absolute;right:7px;top:7px;width:10px;height:10px;border-radius:50%;border:1px solid #7fa5bf; }
+    .plan-card.selected { border-color:#51d6ab;background:rgba(46,178,125,.15); }
+    .plan-card.selected::after { background:#54dcaa;border-color:#54dcaa;box-shadow:0 0 0 3px rgba(84,220,170,.14); }
+    .plan-card.incorrect { border-color:#ef6c7a;background:rgba(214,65,83,.16); }
+    .flow-scheme { display:grid; grid-template-columns:1fr 15px 1fr 15px 1fr; align-items:center; gap:3px; margin:10px 0; color:#d8f5ff; font-size:9px; text-align:center; }
+    .flow-scheme span { min-height:38px; display:grid; place-items:center; padding:4px; border:1px solid rgba(91,210,201,.32); border-radius:7px; background:rgba(40,151,151,.13); line-height:1.16; }
+    .flow-scheme b { color:var(--aqua); font-size:15px; }
+    .purchase-head { display:flex; align-items:center; justify-content:space-between; gap:8px; padding-bottom:7px; border-bottom:1px solid rgba(146,200,231,.22); }
+    .purchase-head h4 { margin:0; font-size:12px; }.purchase-head span { color:#9fc2d6;font-size:10px; }
+    .purchase-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:6px; margin-top:8px; }
+    .purchase-card { min-height:53px; position:relative; padding:7px 7px 7px 29px; border:1px solid rgba(161,203,233,.24); border-radius:8px; background:rgba(4,25,46,.44); color:#d2e4f0; text-align:left; font-size:10px; line-height:1.22; }
+    .purchase-card::before { content:""; position:absolute;left:8px;top:8px;width:13px;height:13px;border:1px solid #80a8c3;border-radius:4px; }
+    .purchase-card.selected { border-color:#51d6ab;background:rgba(46,178,125,.15); }.purchase-card.selected::before { content:"✓"; display:grid;place-items:center;color:#052b20;border-color:#53daaa;background:#53daaa;font-size:10px;font-weight:900; }
+
+    .protocol-sheet { height:calc(100% - 82px); max-height:600px; padding:10px; border-radius:12px; color:#243949; background:linear-gradient(125deg,#eef4f5,#d8e5e8); overflow:hidden; }
+    .protocol-title { display:flex;align-items:center;justify-content:space-between;padding-bottom:6px;border-bottom:1px solid #abc0cb; } .protocol-title b{font-size:12px}.protocol-title span{color:#527186;font-size:9px;}
+    .protocol-fields { display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:7px; }
+    .protocol-field { min-height:49px;padding:7px 7px 7px 24px;position:relative;border:1px solid #b3c7d1;border-radius:6px;background:rgba(255,255,255,.45);color:#2f4a5c;text-align:left;font-size:10px;line-height:1.22; }
+    .protocol-field::before { content:""; position:absolute;left:7px;top:8px;width:10px;height:10px;border-radius:3px;border:1px solid #7993a4;background:white; }
+    .protocol-field.selected { border-color:#22a76c;background:#dcf3e5; }
+    .protocol-field.selected::before { content:"✓";display:grid;place-items:center;border-color:#1da46a;background:#1da46a;color:white;font-weight:900;font-size:8px; }
+    .protocol-field.incorrect { border-color:#dd6370;background:#fce4e6; }
+    .protocol-bottom { display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:7px;padding:6px 7px;border-radius:6px;background:#d3e0e5;color:#4a6577;font-size:9px; }
+
+    .completion { height:calc(100% - 52px); max-height:600px; display:grid; grid-template-columns: 1.05fr .95fr;gap:13px; }
+    .completion-main { padding:18px; border-radius:16px; border:1px solid rgba(73,209,181,.35); background:radial-gradient(circle at 90% 4%,rgba(70,214,180,.29),transparent 40%),linear-gradient(140deg,rgba(16,77,84,.8),rgba(10,35,64,.9)); overflow:hidden; }
+    .completion-main .seal { width:52px;height:52px;display:grid;place-items:center;border-radius:18px;color:#063525;background:linear-gradient(135deg,#6de3b0,#5cd1f2);font-size:24px;font-weight:900;box-shadow:0 0 25px rgba(74,224,169,.3); }
+    .completion-main h2 { margin:10px 0 6px;font-size:clamp(19px,2.2vw,27px);line-height:1.05; }
+    .completion-main p { margin:0;color:#b8d8d4;font-size:12px;line-height:1.42;max-width:500px; }
+    .score-row { display:flex;gap:8px;margin-top:14px; }
+    .score-tile { min-width:74px;padding:8px;border-radius:10px;background:rgba(2,29,43,.36);border:1px solid rgba(122,221,207,.24); } .score-tile b{display:block;font-size:17px;color:#aef6db}.score-tile span{font-size:9px;color:#9ec4c3;}
+    .checklist { padding:14px; overflow:hidden; }
+    .checklist h3 { margin:0 0 8px;font-size:13px; }.checklist p{margin:0 0 8px;color:#a7c0d2;font-size:10px;line-height:1.3;}
+    .final-list { display:grid;gap:6px; }.final-list div{display:flex;gap:7px;align-items:center;color:#c6dbe9;font-size:10px;line-height:1.2;}.final-list i{width:16px;height:16px;display:grid;place-items:center;border-radius:50%;background:rgba(68,212,145,.15);color:#66e5ac;font-size:11px;font-style:normal;}
+
+    .feedback { position:absolute; z-index:4; left:50%;bottom:17px;transform:translateX(-50%) translateY(90px);width:min(470px,calc(100% - 28px));padding:10px 13px;border-radius:10px;border:1px solid rgba(130,198,245,.36);background:#102d4c;color:#dff2ff;box-shadow:0 13px 30px rgba(0,0,0,.27);font-size:12px;text-align:center;transition:transform .26s ease; }
+    .feedback.show { transform:translateX(-50%) translateY(0); }.feedback.good{border-color:rgba(68,212,145,.7);background:#123b37}.feedback.bad{border-color:rgba(255,110,127,.7);background:#43263a}
+
+    .resize-grip { position:absolute;right:0;bottom:0;width:28px;height:28px;z-index:5;display:grid;place-items:center;border:0;border-top-left-radius:11px;background:linear-gradient(135deg,transparent 35%,rgba(80,189,239,.4) 37%,rgba(80,189,239,.85) 46%,transparent 48%,transparent 58%,rgba(80,189,239,.85) 60%,rgba(80,189,239,.85) 69%,transparent 71%);color:transparent; cursor:nwse-resize; }
+    .resize-grip:hover { background-color:rgba(77,170,241,.16); }
+
+    .modal-layer { position:absolute;inset:0;z-index:8;display:none;place-items:center;padding:14px;background:rgba(2,13,28,.73);backdrop-filter:blur(5px); }
+    .modal-layer.open { display:grid; }
+    .modal { width:min(900px,96vw);height:min(520px,calc(100vh - 30px));max-height:600px;padding:15px;border:1px solid rgba(122,195,245,.35);border-radius:18px;background:linear-gradient(145deg,#123454,#0b213a);box-shadow:0 28px 75px rgba(0,0,0,.5);overflow:hidden; }
+    .modal-top { display:flex;align-items:flex-start;justify-content:space-between;gap:12px; }.modal h2{margin:0;font-size:19px}.modal p{margin:4px 0 0;color:#a6bfd3;font-size:11px;line-height:1.3;}
+    .close-btn { width:31px;height:31px;padding:0;border-radius:9px;border:1px solid var(--line);color:#d9eeff;background:rgba(137,194,238,.11);font-size:17px; }
+    .changes-grid { height:calc(100% - 92px);margin-top:13px;display:grid;grid-template-columns:repeat(2,1fr);gap:9px;overflow:hidden; }
+    .change-card { min-width:0;padding:10px;border-radius:11px;border:1px solid rgba(151,199,235,.2);background:rgba(8,29,52,.58);overflow:hidden; }.change-card .change-no{color:var(--aqua);font-size:10px;font-weight:900;letter-spacing:.08em}.change-card h3{margin:4px 0;font-size:12px;line-height:1.15}.change-card p{margin:0;color:#b3c8da;font-size:10px;line-height:1.25;}.change-card em{display:inline-block;margin-top:5px;color:#7fa1bc;font-size:9px;font-style:normal;}
+    .modal-nav { height:39px;display:flex;align-items:end;justify-content:space-between;gap:10px; }.modal-page{color:#86a4bd;font-size:10px;}.modal-buttons{display:flex;gap:6px;}
+    .manual-note { position:absolute;right:14px;bottom:10px;z-index:1;color:#6688a2;font-size:9px; }
+
+    @media (max-width: 940px) {
+      .brand { min-width: 205px; }.deadline { display:none; }.main-layout { grid-template-columns: 62px minmax(0,1fr); }.side-nav { padding:13px 8px; }.nav-caption,.nav-copy,.nav-footer { display:none; }.nav-item { justify-content:center;padding:7px; }.nav-dot { width:33px;height:33px;flex-basis:33px; }.mission-body{grid-template-columns:minmax(0,1fr) 185px;}.lesson-panel{padding:10px;}.lesson-point{font-size:10px;}
+    }
+    @media (max-width: 690px) {
+      body { font-size: 13px; }.topbar{height:57px;padding:8px 10px;gap:8px}.brand{min-width:0}.brand-mark{width:32px;height:32px;flex-basis:32px;border-radius:10px}.brand p{display:none}.brand h1{font-size:13px}.progress-box{width:90px}.progress-text span:first-child{display:none}.scale-control{display:none}.main-layout{height:calc(100% - 57px);grid-template-columns:49px minmax(0,1fr)}.side-nav{padding:7px 5px}.nav-list{gap:3px}.nav-item{min-height:43px;padding:4px}.nav-dot{width:29px;height:29px;flex-basis:29px}.scene{padding:10px}.scene-head{min-height:39px}.scene-title{font-size:18px}.scene-subtitle{font-size:10px}.chip{padding:5px 7px;font-size:9px}.map-intro{grid-template-columns:1fr .74fr;gap:8px}.site-card{padding:7px}.site-card b{font-size:10px}.site-card span{font-size:8px}.site-card .site-no{width:18px;height:18px;font-size:8px;margin-bottom:3px}.brief-card{padding:9px}.brief-card h3{font-size:11px}.brief-card p{font-size:10px}.date-box{margin:7px 0}.calendar-day{width:31px;height:32px;font-size:13px}.fact-list li{font-size:9px}.start-button{margin-top:7px;padding:7px;font-size:10px}.mission-body{grid-template-columns:minmax(0,1fr) 145px;gap:8px}.task-panel,.lesson-panel{padding:8px}.task-copy{font-size:11px;margin-bottom:6px}.lesson-panel h3{font-size:11px}.lesson-panel p{font-size:10px}.lesson-points{gap:5px;margin-top:7px}.lesson-point{gap:5px;font-size:9px}.lesson-point span{width:13px;height:13px;flex-basis:13px;font-size:8px}.legal-tag{margin-top:5px;padding:3px 4px;font-size:8px}.hint-button{margin-top:7px;padding:5px;font-size:9px}.document-paper,.contract-sheet,.protocol-sheet{padding:7px}.error-list{gap:4px;margin-top:5px}.error-row{padding:4px;gap:4px;grid-template-columns:17px minmax(0,1fr)}.error-row .number{width:15px;height:15px;font-size:7px}.error-row p,.choice,.clause,.staff-context,.staff-option,.plan-card,.protocol-field{font-size:9px}.choice{padding:3px}.task-actions{height:50px;padding-top:6px}.primary-btn,.secondary-btn{padding:6px 7px;font-size:9px}.task-status{font-size:9px}.clause-grid,.staff-grid,.protocol-fields{gap:4px}.clause{min-height:43px;padding:5px 5px 5px 20px}.clause::before{left:6px;top:6px;width:9px;height:9px}.contract-note{margin-top:5px;padding:4px;font-size:8px}.staff-card{padding:5px}.staff-name b{font-size:9px}.staff-name small{font-size:7px}.staff-context{margin:3px 0}.staff-options{gap:2px}.staff-option{padding:3px}.practice-board{gap:5px}.practice-zone{padding:6px}.practice-zone h4{font-size:9px}.practice-zone p{font-size:9px}.zone-symbol{width:28px;height:28px;right:5px;bottom:5px;font-size:16px}.plan-list{gap:4px}.plan-card{min-height:51px;padding:5px}.protocol-field{min-height:38px;padding:4px 4px 4px 19px}.protocol-field::before{left:5px;top:6px;width:8px;height:8px}.protocol-bottom{margin-top:4px;padding:4px;font-size:8px}.modal{padding:11px;border-radius:13px}.modal h2{font-size:15px}.changes-grid{margin-top:8px;gap:5px}.change-card{padding:7px}.change-card h3{font-size:10px}.change-card p{font-size:8px}.change-card em{font-size:7px}.manual-note{display:none}
+    }
+    @media (max-height: 430px) {
+      .topbar { height: 49px; padding-top:6px;padding-bottom:6px }.brand-mark{width:28px;height:28px;flex-basis:28px}.main-layout{height:calc(100% - 49px)}.scene{padding-top:7px;padding-bottom:7px}.scene-head{min-height:32px}.scene-subtitle{display:none}.lesson-panel p,.hint-button{display:none}.lesson-points{margin-top:5px}.mission-body{grid-template-columns:minmax(0,1fr) 135px}.map-board{padding:8px}.brief-card{padding:7px}.brief-card p{font-size:8px}.fact-list{gap:3px}.date-box{display:none}.completion-main{padding:10px}.completion-main p{font-size:10px}.score-row{margin-top:8px}.score-tile{padding:5px}.checklist{padding:8px}.final-list{gap:3px}.final-list div{font-size:8px}.final-list i{width:12px;height:12px;font-size:8px}
+    }
+  </style>
+</head>
+<body>
+  <main id="app" aria-label="Учебный тренажёр по охране труда">
+    <section id="trainer">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark">ОТ</div>
+          <div><h1>Организуем обучение<br>по охране труда</h1><p>Квест на виртуальном предприятии</p></div>
+        </div>
+        <div class="top-spacer"></div>
+        <div class="deadline">Нормы меняются <b>31.08.2026</b></div>
+        <div class="progress-box" aria-label="Прогресс квеста">
+          <div class="progress-text"><span>Маршрут готовности</span><span id="progressText">0 / 5</span></div>
+          <div class="progress-line"><span id="progressBar"></span></div>
+        </div>
+        <label class="scale-control" title="Масштаб рабочей области"><span>Размер</span><input id="scaleSlider" type="range" min="78" max="100" value="100" aria-label="Масштаб тренажёра"><output id="scaleValue">100%</output></label>
+        <button id="openChanges" class="icon-button" type="button">35 правок</button>
+        <button id="openGuide" class="icon-button" type="button" aria-label="О тренажёре">?</button>
+      </header>
+      <div class="main-layout">
+        <aside class="side-nav" aria-label="Локации виртуального предприятия">
+          <div class="nav-caption">Локации предприятия</div>
+          <div id="navList" class="nav-list"></div>
+          <div class="nav-footer">Обучающий кейс<br>ООО «Северный Контур»</div>
+        </aside>
+        <section class="workspace" aria-live="polite">
+          <div id="scene"></div>
+          <div id="feedback" class="feedback"></div>
+          <div class="manual-note">Изменения: ПП РФ от 30.06.2026 № 805</div>
+        </section>
+      </div>
+      <button id="resizeGrip" class="resize-grip" type="button" aria-label="Изменить масштаб тренажёра">↘</button>
+      <div id="changesModal" class="modal-layer" role="dialog" aria-modal="true" aria-labelledby="changesTitle">
+        <div class="modal">
+          <div class="modal-top"><div><h2 id="changesTitle">Пакет изменений 2026</h2><p>35 правок: продление действия постановления и 34 поправки к Правилам. Все применяются с 31.08.2026.</p></div><button class="close-btn" data-close="changesModal" type="button" aria-label="Закрыть">×</button></div>
+          <div id="changesGrid" class="changes-grid"></div>
+          <div class="modal-nav"><span id="changesPage" class="modal-page"></span><div class="modal-buttons"><button id="prevChanges" class="secondary-btn" type="button">← Назад</button><button id="nextChanges" class="primary-btn" type="button">Далее →</button></div></div>
+        </div>
+      </div>
+      <div id="guideModal" class="modal-layer" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
+        <div class="modal" style="width:min(650px,96vw);height:min(405px,calc(100vh - 30px))">
+          <div class="modal-top"><div><h2 id="guideTitle">Как проходить квест</h2><p>Вы — специалист по ОТ. До вступления поправок осталось немного времени: соберите корректные решения для предприятия.</p></div><button class="close-btn" data-close="guideModal" type="button" aria-label="Закрыть">×</button></div>
+          <div class="changes-grid" style="grid-template-columns:repeat(2,1fr)">
+            <article class="change-card"><span class="change-no">01 · ИСПРАВЬТЕ</span><h3>Документы и договор</h3><p>Найдите формулировки, которые устарели, и закрепите обязанности учебного центра.</p></article>
+            <article class="change-card"><span class="change-no">02 · НАПРАВЬТЕ</span><h3>Сотрудников</h3><p>Определите программу и специальный порядок для каждой роли в кейсе.</p></article>
+            <article class="change-card"><span class="change-no">03 · ОРГАНИЗУЙТЕ</span><h3>Очную практику</h3><p>Отделите дистанционную теорию от практики по первой помощи, СИЗ, полигонам и тренажёрам.</p></article>
+            <article class="change-card"><span class="change-no">04 · ЗАФИКСИРУЙТЕ</span><h3>Результаты</h3><p>Сверьте протокол, реестр и порядок выдачи бумажной выписки.</p></article>
+          </div>
+          <div class="modal-nav"><span class="modal-page">Сохраняйте решения: прогресс отображается вверху.</span><button class="primary-btn" data-close="guideModal" type="button">Понятно</button></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const missions = [
+        { id: 'map', no: '⌂', title: 'Карта предприятия', small: 'Стартовый бриф' },
+        { id: 'docs', no: '1', title: 'Архив документов', small: 'Исправить ошибки' },
+        { id: 'contract', no: '2', title: 'Закупочный центр', small: 'Договор с УЦ' },
+        { id: 'staff', no: '3', title: 'Отдел кадров', small: 'Направить людей' },
+        { id: 'practice', no: '4', title: 'Учебный полигон', small: 'Очная практика' },
+        { id: 'protocol', no: '5', title: 'Комиссия по ОТ', small: 'Оформить протокол' }
+      ];
+
+      const changes = [
+        ['Продление срока действия', 'Постановление № 2464 действует до 1 сентября 2032 года вместо 1 сентября 2026 года.', 'п. 5 Постановления № 2464'],
+        ['Сфера действия Правил', 'Из п. 5 Правил исключено упоминание НПА, содержащих государственные нормативные требования охраны труда: требования правил по ОТ учитываются в общем порядке.', 'п. 5 Правил'],
+        ['Перевод и внутреннее совместительство', 'При сохранении условий труда, источников опасности, ранее идентифицированных уровней профрисков и характера работы не нужны вводный инструктаж, повторное обучение и проверка знаний.', 'п. 7 Правил'],
+        ['Работники от ЧАЗ: инструктажи', 'Инструктажи работникам, которых ЧАЗ направило к лицу, не являющемуся их работодателем, проводит принимающее физическое или юридическое лицо.', 'п. 9 Правил'],
+        ['Освобождение от первичного инструктажа', 'Работа освобождаемого сотрудника должна быть связана исключительно с опасностями от ПК, офисной и непроизводственной бытовой техники.', 'п. 13 Правил'],
+        ['Новичок на опасной работе', 'Для впервые начавшего трудовую деятельность и допущенного к работам повышенной опасности повторный инструктаж — не реже одного раза в 3 месяца в первый год.', 'п. 14 Правил'],
+        ['Инструктаж после происшествия', 'После аварии или НС работодатель определяет круг лиц; включаются работники и руководители подразделения происшествия и подразделений с вероятностью аналогичного случая.', 'п. 17 Правил'],
+        ['Техническая правка в п. 19', 'Из подп. «б» п. 19 исключены слова «на объектах повышенной опасности, а также».', 'подп. «б» п. 19 Правил'],
+        ['Инструктаж руководителя', 'Руководителю организации (филиала) инструктаж на рабочем месте может проводить специалист по ОТ либо работник, уполномоченный приказом работодателя.', 'п. 22 Правил'],
+        ['Первая помощь: преподаватель / инструктор', 'Дополнен круг лиц с подготовкой: допускается подготовка преподавателей или инструкторов по оказанию первой помощи.', 'п. 35 Правил'],
+        ['Первая помощь: практика и НПА', 'Практику проводят с техническими средствами обучения — тренажёрами, медицинскими изделиями — и наглядными пособиями. Уточнены основания актуализации при изменениях НПА в сфере здравоохранения.', 'п. 36 Правил'],
+        ['Первая помощь: результат проверки', 'Формулировка меняется с «проверки знания требований» на «проверку знаний, умений и навыков».', 'п. 37 Правил'],
+        ['СИЗ: эксплуатация и тренировка', 'Работников обучают правилам эксплуатации (использования) СИЗ. Ответственный демонстрирует правильную эксплуатацию и проводит тренировку.', 'п. 39 Правил'],
+        ['Внеплановое обучение по СИЗ', 'После актуализации программы СИЗ внеплановое обучение организуют в течение 60 календарных дней. Новые требования можно довести на внеплановом инструктаже.', 'п. 41 Правил'],
+        ['Пункт 42', 'Из п. 42 исключены четвертое и пятое предложения.', 'п. 42 Правил'],
+        ['Работники от ЧАЗ: обучение', 'Работники, направленные ЧАЗ к неработодателю, включены в круг лиц, проходящих обучение требованиям ОТ в организации или у ИП, оказывающих соответствующие услуги.', 'п. 44 Правил'],
+        ['Программа 46В', 'В подп. «в» п. 46 уточнено: дополнительные требования — это дополнительные требования к обучению.', 'подп. «в» п. 46 Правил'],
+        ['Пункт 48', 'Исправлена редакционная неточность: «или индивидуальным предпринимателем».', 'п. 48 Правил'],
+        ['Основание для внепланового обучения', 'Уточнены изменения в процессах, сырье и материалах, а также обязанностях работников, непосредственно связанных с производственной деятельностью, если они влияют на безопасность и требуют допзнаний.', 'подп. «г» п. 50 Правил'],
+        ['Категория госслужащих', 'Употребляются категории: федеральные государственные гражданские служащие, госслужащие субъектов РФ и муниципальные служащие.', 'п. 52 Правил'],
+        ['Функции специалиста по ОТ', 'Лица, на которых возложены функции специалиста по ОТ, прямо добавлены к специалистам по ОТ: программы 46А и 46Б.', 'подп. «г» п. 53 Правил'],
+        ['Комиссия по проверке знаний', 'Члены комиссии обучаются по 46А и 46Б, а также по программе 46В, по которой они проверяют знания работников.', 'подп. «е» п. 53 Правил'],
+        ['Проводящие инструктажи / обучение', 'Эти лица проходят 46Б, а также программу 46В, по которой проводят инструктаж или обучение работникам.', 'подп. «з» п. 53 Правил'],
+        ['Освобождение от 46Б', 'Для освобождаемых категорий условие теперь: деятельность связана исключительно с офисными источниками опасности; из текста исключена прежняя фраза об отсутствии других источников.', 'п. 54 Правил'],
+        ['Периодичность 46В и правила по ОТ', 'Плановое обучение по 46В — не реже одного раза в 3 года (если специальными требованиями не установлено иное). Обучение по правилам по ОТ отнесено к 46В.', 'п. 60 Правил'],
+        ['Время обучения', 'Обучение проводится с отрывом от работы именно на время обучения требованиям ОТ и проверки знания.', 'п. 65 Правил'],
+        ['Дистанционный формат', 'Дистанционные технологии нельзя использовать для практики навыков первой помощи, использования СИЗ, а также практики на учебно-тренировочных полигонах и тренажёрах.', 'п. 66 Правил'],
+        ['Пункт 74', 'Пункт 74 признан утратившим силу.', 'п. 74 Правил'],
+        ['Терминология п. 78', 'Слова «органов исполнительной власти» заменены словами «исполнительных органов».', 'п. 78 Правил'],
+        ['Наряд-допуск', 'В п. 89 после слов «оформление наряда-допуска» добавлено «(или распоряжения)».', 'п. 89 Правил'],
+        ['Пункт 91', 'Из п. 91 исключены слова «в организации или у индивидуального предпринимателя, оказывающих услуги…».', 'п. 91 Правил'],
+        ['Реестр в протоколе', 'Регистрационный номер реестра обученных лиц указывают прямо в протоколе либо помещают в приложенную выписку из реестра, подписанную электронной подписью через ФГИС СОУТ.', 'подп. «з» п. 92 Правил'],
+        ['Бумажный протокол / выписка', 'Работнику по запросу их предоставляет работодатель, УЦ или ИП; УЦ/ИП по запросу работодателя предоставляет протокол (выписку) работников его организации.', 'п. 94 Правил'],
+        ['Реестр и СФР', 'Раздел XI переименован в «реестр обученных лиц». В п. 121 «государственные внебюджетные фонды» заменены на Фонд пенсионного и социального страхования РФ.', 'разд. XI, п. 121 Правил'],
+        ['Приложения № 2 и № 3', 'Приложение № 2 изложено полностью в новой редакции: обновлены темы теории и практики первой помощи. В приложении № 3 уточнены темы 46Б: СОУТ; общие сведения о СУОТ, права и обязанности; вредные/опасные факторы, опасности и профриски на рабочем месте.', 'приложения № 2 и № 3']
+      ];
+
+      const state = {
+        active: 'map',
+        done: { docs:false, contract:false, staff:false, practice:false, protocol:false },
+        docAnswers: {}, contractAnswers: new Set(), staffAnswers: {}, practiceAnswers: new Set(), practicePlanApproved: false, purchaseAnswers: new Set(), protocolAnswers:new Set(), changesPage: 0, scale: 100
+      };
+      const scene = document.getElementById('scene');
+      const navList = document.getElementById('navList');
+      const feedback = document.getElementById('feedback');
+
+      const escape = (str) => str.replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
+      function doneCount(){ return Object.values(state.done).filter(Boolean).length; }
+      function showFeedback(text, type='') {
+        feedback.textContent = text;
+        feedback.className = `feedback show ${type}`;
+        window.clearTimeout(showFeedback.t);
+        showFeedback.t = window.setTimeout(() => feedback.className = 'feedback', 3100);
+      }
+      function setDone(id, message) {
+        state.done[id] = true;
+        renderNav(); updateProgress();
+        showFeedback(message, 'good');
+      }
+      function updateProgress(){
+        const count = doneCount();
+        document.getElementById('progressText').textContent = `${count} / 5`;
+        document.getElementById('progressBar').style.width = `${count * 20}%`;
+      }
+      function renderNav() {
+        navList.innerHTML = missions.map(m => {
+          const isDone = state.done[m.id];
+          return `<button type="button" class="nav-item ${state.active===m.id?'active':''} ${isDone?'done':''}" data-view="${m.id}"><span class="nav-dot">${isDone?'✓':m.no}</span><span class="nav-copy"><b>${m.title}</b><small>${m.small}</small></span></button>`;
+        }).join('');
+        navList.querySelectorAll('[data-view]').forEach(btn => btn.addEventListener('click', () => { state.active = btn.dataset.view; render(); }));
+      }
+      function render() { renderNav(); const views = {map:renderMap,docs:renderDocs,contract:renderContract,staff:renderStaff,practice:renderPractice,protocol:renderProtocol}; views[state.active](); updateProgress(); }
+      function renderMap() {
+        scene.innerHTML = `<div class="scene">
+          <div class="scene-head"><div><p class="eyebrow">ООО «Северный Контур» · 28 августа 2026</p><h2 class="scene-title">Виртуальное предприятие готовится к изменениям</h2><p class="scene-subtitle">Ваша задача — к 31 августа собрать законный маршрут обучения и доказательства его выполнения.</p></div><span class="chip">${doneCount() ? 'Маршрут в работе' : 'Старт квеста'}</span></div>
+          <div class="map-intro">
+            <section class="map-board" aria-label="Карта локаций">
+              <div class="site-grid">
+                ${missions.slice(1).map((m,i)=>`<button class="site-card ${i>0&&!state.done[missions[i].id]?'':' '}" type="button" data-go="${m.id}"><span class="site-no">${m.no}</span><b>${m.title}</b><span>${m.small}</span></button>`).join('')}
+                <button class="site-card" type="button" id="openChangesMap"><span class="site-no">§</span><b>Нормативный штаб</b><span>Все 35 правок</span></button>
+              </div>
+            </section>
+            <div class="brief-stack">
+              <section class="brief-card"><h3>Задание от директора</h3><p>«Нам нужен не перечень курсов, а работающая система: верные документы, договор, очная практика и доказуемый протокол».</p><div class="date-box"><div class="calendar-day">31</div><div><strong>Август 2026</strong><small>Поправки уже утверждены ПП РФ № 805</small></div></div><ul class="fact-list"><li><i></i>86 работников, склад и упаковочная линия</li><li><i></i>Есть сотрудники от частного агентства занятости</li><li><i></i>Теория частично запланирована онлайн</li></ul></section>
+              <section class="brief-card"><h3>Финиш квеста</h3><p>Пройдите пять точек контроля. В каждой — одно прикладное решение для предприятия.</p><button class="start-button" id="startQuest" type="button">Начать с архива документов →</button></section>
+            </div>
+          </div></div>`;
+        scene.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>{state.active=b.dataset.go;render();}));
+        document.getElementById('startQuest').addEventListener('click',()=>{state.active='docs';render();});
+        document.getElementById('openChangesMap').addEventListener('click',openChanges);
+      }
+      function renderDocs() {
+        const data = [
+          {key:'term', text:'В положении указано: «Правила действуют до 01.09.2026».', options:[['Оставить прежний срок','wrong'],['Заменить: до 01.09.2032','right']]},
+          {key:'combo', text:'«При внутреннем совместительстве всегда провести вводный инструктаж, повторное обучение и проверку знаний».', options:[['Освобождать при сохранении условий труда и источников опасности','wrong'],['Указать исключение при сохранении условий, источников опасности, уровней рисков и характера работы','right'],['Оставить обязанность без исключений','wrong']]},
+          {key:'office', text:'«Офисных работников можно освободить, если отсутствуют другие источники опасности».', options:[['Оставить прежнюю формулу','wrong'],['Указать: деятельность связана исключительно с ПК, офисной и непроизводственной бытовой техникой','right'],['Освобождать всех, кто работает в офисе, независимо от опасностей','wrong']]}
+        ];
+        scene.innerHTML = `<div class="scene"><div class="scene-head"><div><p class="eyebrow">Локация 1 · архив документов</p><h2 class="scene-title">Найдите ошибки в положении об обучении</h2><p class="scene-subtitle">Отметьте корректные редакции. Это основа для локального акта и перечней освобождаемых должностей.</p></div><span class="chip">${state.done.docs?'Готово':'3 ошибки'}</span></div>
+        <div class="mission-body"><section class="task-panel"><p class="task-copy"><b>Файл:</b> «Положение об обучении по ОТ, версия 2024». Юрист оставил в нём три фразы, которые не соответствуют редакции с 31.08.2026.</p><div class="document-paper"><div class="document-header"><div><small>ООО «Северный Контур»</small><b>ПОЛОЖЕНИЕ · фрагмент для проверки</b></div><small>версия на согласование</small></div><div class="error-list">${data.map((row,i)=>`<div class="error-row ${state.docAnswers[row.key]==='right'?'fixed':''}"><span class="number">${i+1}</span><div><p>${row.text}</p><div class="choice-row">${row.options.map(([label,val])=>`<button type="button" class="choice ${state.docAnswers[row.key]===val?'selected':''} ${state.docAnswers[row.key]&&state.docAnswers[row.key]!==val&&val==='right'?'wrong':''}" data-doc="${row.key}" data-value="${val}">${label}</button>`).join('')}</div></div></div>`).join('')}</div></div><div class="task-actions"><span class="task-status ${state.done.docs?'good':''}" id="docStatus">${state.done.docs?'Редакция утверждена':'Выберите редакции для всех трёх пунктов'}</span><div class="action-group">${state.done.docs?'<button id="nextDocs" class="primary-btn next-btn" type="button">Перейти к договору →</button>':''}<button id="checkDocs" class="primary-btn" type="button">${state.done.docs?'Проверено ✓':'Утвердить правки'}</button></div></div></section>
+        <aside class="lesson-panel"><h3>Что изменилось</h3><p>Изменения касаются срока действия, освобождения при внутреннем совместительстве и формулировок об офисных рисках.</p><span class="legal-tag">п. 5 ПП № 2464; пп. 7, 13 Правил</span><div class="lesson-points"><div class="lesson-point"><span>1</span><div>Не забудьте про <b>вводный</b> инструктаж: его тоже нет в перечисленных условиях п. 7.</div></div><div class="lesson-point"><span>2</span><div>Слово «исключительно» — ключ к освобождению.</div></div></div><button class="hint-button" type="button" data-hint="docs">Показать подсказку</button></aside></div></div>`;
+        scene.querySelectorAll('[data-doc]').forEach(btn=>btn.addEventListener('click',()=>{state.docAnswers[btn.dataset.doc]=btn.dataset.value;renderDocs();}));
+        document.getElementById('checkDocs').addEventListener('click',()=>{ if(data.every(x=>state.docAnswers[x.key]==='right')) { setDone('docs','Верно. Локальный акт отражает ключевые изменения 2026 года.'); renderDocs(); } else showFeedback('Проверьте все три формулировки: верные правки должны быть выбраны одновременно.','bad');});
+        const nextDocs=scene.querySelector('#nextDocs'); if(nextDocs) nextDocs.addEventListener('click',()=>{state.active='contract';render();});
+        bindHint('docs');
+      }
+      function renderContract() {
+        const clauses = [
+          ['theory','Теоретические модули могут проводиться с применением дистанционных технологий.'],
+          ['practice','Практика по первой помощи и СИЗ проходит очно: тренажёры, медицинские изделия, демонстрация и тренировка.'],
+          ['chaz','Для работников от ЧАЗ УЦ принимает на обучение по ОТ; принимающая сторона проводит инструктажи.'],
+          ['protocol','По запросу работодателя УЦ выдаёт протокол (выписку) по работникам его организации.'],
+          ['remoteAll','Практику можно провести по видеосвязи, если инструктор наблюдает действия работника в камере.'],
+          ['registry','Достаточно хранить номер записи в переписке с УЦ: в протоколе и приложенной выписке его указывать не требуется.']
+        ];
+        scene.innerHTML = `<div class="scene"><div class="scene-head"><div><p class="eyebrow">Локация 2 · закупочный центр</p><h2 class="scene-title">Соберите договор с учебным центром</h2><p class="scene-subtitle">Выберите положения, которые должны войти в техническое задание и договор.</p></div><span class="chip">${state.done.contract?'Подписан':'4 условия'}</span></div>
+        <div class="mission-body"><section class="task-panel"><p class="task-copy"><b>Поставщик:</b> УЦ «ПрофНавык». Вы можете включить только корректные договорные условия. Отметьте четыре.</p><div class="contract-sheet"><div class="contract-top"><div><small>ПРОЕКТ ДОГОВОРА № ОТ-26/081</small><br><b>Обучение работников требованиям ОТ</b></div><small>выберите обязательные условия</small></div><div class="clause-grid">${clauses.map(([id,text])=>`<button class="clause ${state.contractAnswers.has(id)?'selected':''}" type="button" data-clause="${id}">${text}</button>`).join('')}</div><div class="contract-note">Контроль: договор не заменяет внутренних графиков и приказов, но фиксирует формат, практику и документы УЦ.</div></div><div class="task-actions"><span class="task-status ${state.done.contract?'good':''}">${state.done.contract?'Договор можно передавать на подпись':'Выбрано: '+state.contractAnswers.size+' из 4'}</span><div class="action-group">${state.done.contract?'<button id="nextContract" class="primary-btn next-btn" type="button">Перейти к кадрам →</button>':''}<button id="checkContract" class="primary-btn" type="button">${state.done.contract?'Проверено ✓':'Проверить договор'}</button></div></div></section>
+        <aside class="lesson-panel"><h3>Норма в действии</h3><p>Не вся программа запрещена для дистанционного формата. Запрет касается определённых практических занятий.</p><span class="legal-tag">пп. 9, 44, 66, 94 Правил</span><div class="lesson-points"><div class="lesson-point"><span>✓</span><div>Инструктаж работника от ЧАЗ проводит принимающая сторона.</div></div><div class="lesson-point"><span>✓</span><div>Практика первой помощи и СИЗ требует фактической отработки.</div></div></div><button class="hint-button" type="button" data-hint="contract">Показать подсказку</button></aside></div></div>`;
+        scene.querySelectorAll('[data-clause]').forEach(btn=>btn.addEventListener('click',()=>{const id=btn.dataset.clause; state.contractAnswers.has(id)?state.contractAnswers.delete(id):state.contractAnswers.add(id);renderContract();}));
+        document.getElementById('checkContract').addEventListener('click',()=>{const right=['theory','practice','chaz','protocol']; if(right.length===state.contractAnswers.size && right.every(x=>state.contractAnswers.has(x))) { setDone('contract','Договор собран верно: дистанционная теория отделена от очной практики.'); renderContract(); } else showFeedback('В договоре должно быть ровно четыре корректных условия. Проверьте формат практики и порядок по ЧАЗ.','bad');});
+        const nextContract=scene.querySelector('#nextContract'); if(nextContract) nextContract.addEventListener('click',()=>{state.active='staff';render();});
+        bindHint('contract');
+      }
+      function renderStaff() {
+        const people = [
+          {id:'lilia',name:'Лилия Воронова',role:'HR-менеджер',context:'Приказом на неё возложены функции специалиста по ОТ на период отпуска штатного СОТа.',opts:[['a','Направить только на 46А'],['b','Направить на 46А и 46Б'],['c','Не обучать: она не штатный СОТ']],right:'b'},
+          {id:'timur',name:'Тимур Алиев',role:'новый стропальщик',context:'Первое место работы; допущен к работам повышенной опасности.',opts:[['a','46В; в первый год повторный инструктаж не реже раза в 3 месяца'],['b','Только вводный инструктаж раз в полгода'],['c','46В ежегодно во всех случаях']],right:'a'},
+          {id:'vera',name:'Вера Ланская',role:'оператор от ЧАЗ',context:'Направлена агентством на участок упаковки в ООО «Северный Контур».',opts:[['a','Инструктаж проводит ЧАЗ; учится у нас внутри'],['b','Инструктаж проводит принимающая сторона; обучение — в УЦ/у ИП'],['c','Не нужна ни программа, ни инструктаж']],right:'b'},
+          {id:'oleg',name:'Олег Нестеров',role:'внутренний совместитель',context:'Уже обучен. Оформлен на внутреннее совместительство; условия, опасности, уровни рисков и характер работы сохранены.',opts:[['a','Повторить вводный инструктаж и проверку'],['b','Освободить от вводного, повторного обучения и проверки знаний'],['c','Освободить только от проверки знаний']],right:'b'}
+        ];
+        scene.innerHTML = `<div class="scene"><div class="scene-head"><div><p class="eyebrow">Локация 3 · отдел кадров</p><h2 class="scene-title">Направьте сотрудников по новым правилам</h2><p class="scene-subtitle">Примите решение по каждому работнику: программа, ответственный и периодичность.</p></div><span class="chip">${state.done.staff?'Маршруты готовы':'4 карточки'}</span></div>
+        <div class="mission-body"><section class="task-panel"><p class="task-copy"><b>Приказ на обучение:</b> назначьте корректный маршрут. Кадровый план должен отражать специальные категории, а не только должность в штатном расписании.</p><div class="staff-grid">${people.map(p=>`<article class="staff-card ${state.staffAnswers[p.id]===p.right?'complete':''}"><div class="staff-name"><b>${p.name}</b><small>${p.role}</small></div><p class="staff-context">${p.context}</p><div class="staff-options">${p.opts.map(([id,text])=>`<button class="staff-option ${state.staffAnswers[p.id]===id?'selected':''}" data-person="${p.id}" data-answer="${id}" type="button">${text}</button>`).join('')}</div></article>`).join('')}</div><div class="task-actions"><span class="task-status ${state.done.staff?'good':''}">${state.done.staff?'Приказ согласован':'Заполните 4 маршрута'}</span><div class="action-group">${state.done.staff?'<button id="nextStaff" class="primary-btn next-btn" type="button">Перейти к практике →</button>':''}<button id="checkStaff" class="primary-btn" type="button">${state.done.staff?'Проверено ✓':'Согласовать приказ'}</button></div></div></section>
+        <aside class="lesson-panel"><h3>Кого добавили / уточнили</h3><p>Поправки прямо называют лиц с функциями СОТа, работников от ЧАЗ, членов комиссий и проводящих инструктажи.</p><span class="legal-tag">пп. 14, 44, 53, 60 Правил</span><div class="lesson-points"><div class="lesson-point"><span>1</span><div>Базовая периодичность 46В — раз в 3 года, если специальный акт не задаёт другой срок.</div></div><div class="lesson-point"><span>2</span><div>Для впервые работающего на опасной работе действует отдельная частота инструктажа в первый год.</div></div></div><button class="hint-button" type="button" data-hint="staff">Показать подсказку</button></aside></div></div>`;
+        scene.querySelectorAll('[data-person]').forEach(btn=>btn.addEventListener('click',()=>{state.staffAnswers[btn.dataset.person]=btn.dataset.answer;renderStaff();}));
+        document.getElementById('checkStaff').addEventListener('click',()=>{ if(people.every(p=>state.staffAnswers[p.id]===p.right)) { setDone('staff','Верно. Сотрудники направлены с учётом новых категорий и специальных условий.'); renderStaff(); } else showFeedback('Не все маршруты верны. Проверьте временные функции СОТа, ЧАЗ и первый год опасной работы.','bad');});
+        const nextStaff=scene.querySelector('#nextStaff'); if(nextStaff) nextStaff.addEventListener('click',()=>{state.active='practice';render();});
+        bindHint('staff');
+      }
+      function renderPractice() {
+        const plans = [
+          ['online','Теорию первой помощи провести в вебинарной комнате с учебными материалами.'],
+          ['manikin','Провести очную практику первой помощи на тренажёре с медицинскими изделиями.'],
+          ['ppe','Назначенное лицо демонстрирует эксплуатацию СИЗ и проводит тренировку работников очно.'],
+          ['recording','Видеозапись действий инструктора и тест заменить очной тренировкой по СИЗ.'],
+          ['60days','После актуализации программы СИЗ организовать внеплановое обучение в течение 60 календарных дней.'],
+          ['skillcheck','В проверку первой помощи включить демонстрацию знаний, умений и навыков.']
+        ];
+        const purchases = [
+          ['manikin','Тренажёр-манекен для СЛР и отработки устойчивого бокового положения.'],
+          ['medical','Медицинские изделия: жгуты, бинты, устройства для искусственного дыхания.'],
+          ['ppekit','Комплекты СИЗ, применяемых на предприятии, для демонстрации эксплуатации и тренировки.'],
+          ['visual','Наглядные пособия для разбора алгоритмов первой помощи.'],
+          ['videos','Годовая подписка на библиотеку роликов без закупки тренажёров и СИЗ.'],
+          ['printer','Офисный принтер для печати памяток вместо практического оснащения.']
+        ];
+        const isBuyStep = state.practicePlanApproved;
+        const mainContent = isBuyStep ? `
+          <div class="practice-board">
+            <article class="practice-zone"><h4>Схема закупки</h4><p>Покупаем только то, что позволяет <b>фактически</b> отработать навыки. Теоретические материалы полезны, но не заменяют оснащение практики.</p><div class="zone-symbol">🛒</div></article>
+            <article class="practice-zone"><h4>Проверка комплектации</h4><p>Свяжите позиции с реальной программой: первая помощь, эксплуатация СИЗ, демонстрация и тренировка.</p><div class="zone-symbol">✓</div></article>
+            <div class="practice-zone" style="grid-column:1/-1"><div class="purchase-head"><h4>Заявка на оснащение полигона</h4><span>Выберите 4 позиции из 6</span></div><div class="purchase-grid">${purchases.map(([id,text])=>`<button class="purchase-card ${state.purchaseAnswers.has(id)?'selected':''}" type="button" data-purchase="${id}">${text}</button>`).join('')}</div></div>
+          </div>` : `
+          <div class="practice-board">
+            <article class="practice-zone"><h4>Первая помощь</h4><p>Практические занятия формируют умения и навыки. Используйте тренажёры, медицинские изделия и наглядные пособия.</p><div class="zone-symbol">✚</div></article>
+            <article class="practice-zone"><h4>СИЗ</h4><p>Работнику нужна не только памятка: правила эксплуатации, показ ответственного лица и тренировка применения.</p><div class="zone-symbol">◈</div></article>
+            <div class="practice-zone" style="grid-column:1/-1"><h4>План на смену</h4><div class="plan-list">${plans.map(([id,text])=>`<button class="plan-card ${state.practiceAnswers.has(id)?'selected':''}" type="button" data-plan="${id}">${text}</button>`).join('')}</div></div>
+          </div>`;
+        const actionText = isBuyStep ? `Выбрано к закупке: ${state.purchaseAnswers.size} из 4` : `Выбрано в план: ${state.practiceAnswers.size} из 5`;
+        const actionLabel = isBuyStep ? 'Проверить закупку' : 'Утвердить план';
+        scene.innerHTML = `<div class="scene"><div class="scene-head"><div><p class="eyebrow">Локация 4 · учебный полигон</p><h2 class="scene-title">${isBuyStep?'Оснастите очную практику':'Организуйте очные практические занятия'}</h2><p class="scene-subtitle">${isBuyStep?'Отдел закупок подготовил смешанную заявку. Отделите оснащение для формирования навыков от излишнего.':'Соберите рабочий план: дистанционная теория допустима, но практика — не формальность.'}</p></div><span class="chip">${state.done.practice?'Полигон готов':isBuyStep?'Этап 2 из 2':'Этап 1 из 2'}</span></div>
+        <div class="mission-body"><section class="task-panel"><p class="task-copy">${isBuyStep?'<b>Заявка УЦ:</b> отметьте четыре позиции, необходимые для реальной практики. Два предложения звучат убедительно, но не обеспечивают отработку навыков.':'<b>Ресурсы полигона:</b> манекен для СЛР, аптечка и медицинские изделия, комплект СИЗ, инструктор и ответственный за практику. Отметьте пять допустимых пунктов плана.'}</p>${mainContent}<div class="task-actions"><span class="task-status ${state.done.practice?'good':''}">${state.done.practice?'Практика и заявка подтверждены':actionText}</span><div class="action-group">${state.done.practice?'<button id="nextPractice" class="primary-btn next-btn" type="button">Перейти к протоколу →</button>':''}<button id="checkPractice" class="primary-btn" type="button">${state.done.practice?'Проверено ✓':actionLabel}</button></div></div></section>
+        <aside class="lesson-panel"><h3>Схема корректного формата</h3><div class="flow-scheme"><span>Теория<br>дистанционно</span><b>→</b><span>Навыки<br>очно</span><b>→</b><span>Проверка<br>результата</span></div><p>Запрет на дистанционный формат направлен именно на практику. Для СИЗ нужны демонстрация и тренировка; для первой помощи — тренажёры, медицинские изделия и наглядные пособия.</p><span class="legal-tag">пп. 36, 37, 39, 41, 66 Правил</span><div class="lesson-points"><div class="lesson-point"><span>✓</span><div>УЦ вправе использовать инструктора по первой помощи.</div></div><div class="lesson-point"><span>✓</span><div>Изменённая программа СИЗ запускает 60-дневный срок для внепланового обучения.</div></div></div><button class="hint-button" type="button" data-hint="practice">Показать подсказку</button></aside></div></div>`;
+        scene.querySelectorAll('[data-plan]').forEach(btn=>btn.addEventListener('click',()=>{const id=btn.dataset.plan;state.practiceAnswers.has(id)?state.practiceAnswers.delete(id):state.practiceAnswers.add(id);renderPractice();}));
+        scene.querySelectorAll('[data-purchase]').forEach(btn=>btn.addEventListener('click',()=>{const id=btn.dataset.purchase;state.purchaseAnswers.has(id)?state.purchaseAnswers.delete(id):state.purchaseAnswers.add(id);renderPractice();}));
+        document.getElementById('checkPractice').addEventListener('click',()=>{
+          const rightPlan=['online','manikin','ppe','60days','skillcheck'];
+          const rightPurchase=['manikin','medical','ppekit','visual'];
+          if(!state.practicePlanApproved) {
+            if(state.practiceAnswers.size===rightPlan.length && rightPlan.every(x=>state.practiceAnswers.has(x))) { state.practicePlanApproved=true; showFeedback('План принят. Теперь проверьте, что именно нужно купить для практики.','good'); renderPractice(); }
+            else showFeedback('В плане должно быть пять допустимых пунктов. Видеозапись не заменяет тренировку по СИЗ.','bad');
+          } else if(state.purchaseAnswers.size===rightPurchase.length && rightPurchase.every(x=>state.purchaseAnswers.has(x))) { setDone('practice','Полигон готов: план и закупка обеспечивают очную отработку навыков.'); renderPractice(); }
+          else showFeedback('Выберите 4 позиции для практики. Памятки и видео полезны в теории, но не заменяют оборудование и СИЗ.','bad');
+        });
+        const nextPractice=scene.querySelector('#nextPractice'); if(nextPractice) nextPractice.addEventListener('click',()=>{state.active='protocol';render();});
+        bindHint('practice');
+      }
+      function renderProtocol() {
+        const fields = [
+          ['registry','Регистрационный номер записи из реестра обученных лиц: прямо в протоколе ИЛИ в приложенной выписке, подписанной ЭП через ФГИС СОУТ.'],
+          ['skills','Результат проверки по первой помощи: проверены знания, умения и навыки.'],
+          ['paper','По запросу работодателя УЦ предоставляет бумажный протокол (выписку) по его работникам.'],
+          ['worker','По запросу работника бумажный протокол (выписку) выдаёт работодатель, УЦ или ИП.'],
+          ['oldregistry','Достаточно указать номер удостоверения; сведения из реестра и приложение к протоколу не нужны.'],
+          ['emailonly','Протокол сотруднику можно предоставить только по электронной почте, бумажная форма не применяется.']
+        ];
+        scene.innerHTML = `<div class="scene"><div class="scene-head"><div><p class="eyebrow">Локация 5 · комиссия по ОТ</p><h2 class="scene-title">Оформите протокол проверки</h2><p class="scene-subtitle">Проверьте документ, сведения о реестре и порядок выдачи бумажной выписки.</p></div><span class="chip">${state.done.protocol?'Квест пройден':'4 реквизита'}</span></div>
+        <div class="mission-body"><section class="task-panel"><p class="task-copy"><b>Комиссия завершила проверку.</b> Внесите в итоговый протокол только корректные реквизиты и правила выдачи документов.</p><div class="protocol-sheet"><div class="protocol-title"><div><span>ПРОТОКОЛ № 18/ОТ-2026</span><br><b>Проверка знаний требований охраны труда</b></div><span>31.08.2026</span></div><div class="protocol-fields">${fields.map(([id,text])=>`<button class="protocol-field ${state.protocolAnswers.has(id)?'selected':''}" data-protocol="${id}" type="button">${text}</button>`).join('')}</div><div class="protocol-bottom"><span>Раздел XI теперь называется «реестр обученных лиц».</span><span>Проверьте четыре условия ✓</span></div></div><div class="task-actions"><span class="task-status ${state.done.protocol?'good':''}">${state.done.protocol?'Протокол оформлен':'Выбрано: '+state.protocolAnswers.size+' из 4'}</span><div class="action-group">${state.done.protocol?'<button id="nextProtocol" class="primary-btn next-btn" type="button">Перейти к итогам →</button>':''}<button id="checkProtocol" class="primary-btn" type="button">${state.done.protocol?'Проверено ✓':'Подписать протокол'}</button></div></div></section>
+        <aside class="lesson-panel"><h3>Доказуемый результат</h3><p>Реестровая запись не исчезает: меняется допустимый способ отразить её в пакете документов. Учтите и запросы сторон.</p><span class="legal-tag">пп. 92, 94; разд. XI Правил</span><div class="lesson-points"><div class="lesson-point"><span>1</span><div>Выписка из реестра должна быть подписана электронной подписью посредством ФГИС СОУТ.</div></div><div class="lesson-point"><span>2</span><div>Новые приложения к Правилам обновляют содержание подготовки, а не отменяют документирование результата.</div></div></div><button class="hint-button" type="button" data-hint="protocol">Показать подсказку</button></aside></div></div>`;
+        scene.querySelectorAll('[data-protocol]').forEach(btn=>btn.addEventListener('click',()=>{const id=btn.dataset.protocol;state.protocolAnswers.has(id)?state.protocolAnswers.delete(id):state.protocolAnswers.add(id);renderProtocol();}));
+        document.getElementById('checkProtocol').addEventListener('click',()=>{const right=['registry','skills','paper','worker']; if(state.protocolAnswers.size===right.length && right.every(x=>state.protocolAnswers.has(x))){setDone('protocol','Протокол оформлен. Все пять точек контроля пройдены.'); renderProtocol();} else showFeedback('Оставьте четыре корректных реквизита. Проверьте реестр и порядок выдачи протокола.','bad');});
+        const nextProtocol=scene.querySelector('#nextProtocol'); if(nextProtocol) nextProtocol.addEventListener('click',()=>{state.active='map';render();});
+        bindHint('protocol');
+      }
+      function bindHint(area) {
+        const hints = {
+          docs:'Сверьте срок действия, четыре условия для совместительства и слово «исключительно».',
+          contract:'Верны условия о дистанционной теории, очной практике, ЧАЗ и бумажной выписке по запросу работодателя.',
+          staff:'Лилия — 46А+46Б; Тимур — 46В и квартальный повторный инструктаж в первый год; Вера — принимающая сторона/УЦ; Олег — исключение п. 7.',
+          practice: state.practicePlanApproved ? 'К закупке нужны манекен, медицинские изделия, комплекты СИЗ и наглядные пособия. Видео и принтер не создают практических навыков.' : 'Только пункт о замене очной тренировки видеозаписью не входит в план.',
+          protocol:'Выберите все формулировки, кроме двух, которые отрицают номер реестра и бумажную форму.'
+        };
+        const b=scene.querySelector('[data-hint]'); if(b) b.addEventListener('click',()=>showFeedback(hints[area]));
+      }
+      function renderCompletionIfNeeded() {
+        if(doneCount()!==5) return false;
+        scene.innerHTML = `<div class="scene"><div class="scene-head"><div><p class="eyebrow">Финиш · нормативный штаб</p><h2 class="scene-title">Предприятие готово к 31 августа</h2><p class="scene-subtitle">Система обучения собрана и может быть внедрена локальными актами, приказом и договором.</p></div><span class="chip">5 / 5 миссий</span></div><div class="completion"><section class="completion-main"><div class="seal">✓</div><h2>Маршрут обучения<br>по ОТ утверждён</h2><p>Вы обновили документы, заключили договор с учебным центром, направили сотрудников, спланировали очную практику и оформили проверку результатов.</p><div class="score-row"><div class="score-tile"><b>35</b><span>правок в реестре</span></div><div class="score-tile"><b>5</b><span>практических решений</span></div><div class="score-tile"><b>31.08</b><span>дата применения</span></div></div><button class="start-button" id="replay" type="button">Пройти кейс ещё раз</button></section><aside class="checklist"><h3>Контрольный список работодателя</h3><p>Используйте после тренажёра для внутренней сверки.</p><div class="final-list"><div><i>✓</i>Обновить положение, программы и перечни освобождённых.</div><div><i>✓</i>Проверить ЧАЗ, комиссии, инструктирующих и функции СОТа.</div><div><i>✓</i>Сверить периодичность 46В и специальные правила по ОТ.</div><div><i>✓</i>Обеспечить очную практику первой помощи, СИЗ, полигонов и тренажёров.</div><div><i>✓</i>Проверить реестр, протоколы и выдачу выписок.</div></div><button class="hint-button" id="openChangesFinal" type="button">Открыть реестр всех 35 правок</button></aside></div></div>`;
+        document.getElementById('replay').addEventListener('click',()=>{state.done={docs:false,contract:false,staff:false,practice:false,protocol:false};state.docAnswers={};state.contractAnswers=new Set();state.staffAnswers={};state.practiceAnswers=new Set();state.practicePlanApproved=false;state.purchaseAnswers=new Set();state.protocolAnswers=new Set();state.active='map';render();});
+        document.getElementById('openChangesFinal').addEventListener('click',openChanges); return true;
+      }
+      const baseRender = render;
+      render = function(){ if(state.active==='map' && renderCompletionIfNeeded()) { renderNav(); updateProgress(); return; } baseRender(); };
+
+      function openChanges(){ state.changesPage=0; renderChanges(); document.getElementById('changesModal').classList.add('open'); }
+      function renderChanges(){
+        const per=4, pages=Math.ceil(changes.length/per), start=state.changesPage*per;
+        document.getElementById('changesGrid').innerHTML=changes.slice(start,start+per).map((c,i)=>`<article class="change-card"><span class="change-no">${String(start+i+1).padStart(2,'0')} / ${changes.length}</span><h3>${escape(c[0])}</h3><p>${escape(c[1])}</p><em>${escape(c[2])}</em></article>`).join('');
+        document.getElementById('changesPage').textContent=`Страница ${state.changesPage+1} из ${pages} · Все изменения вступают в силу 31.08.2026`;
+        document.getElementById('prevChanges').disabled=state.changesPage===0;document.getElementById('nextChanges').disabled=state.changesPage===pages-1;
+      }
+      document.getElementById('openChanges').addEventListener('click',openChanges);
+      document.getElementById('prevChanges').addEventListener('click',()=>{if(state.changesPage>0){state.changesPage--;renderChanges();}});
+      document.getElementById('nextChanges').addEventListener('click',()=>{const pages=Math.ceil(changes.length/4);if(state.changesPage<pages-1){state.changesPage++;renderChanges();}});
+      document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>document.getElementById(b.dataset.close).classList.remove('open')));
+      document.getElementById('openGuide').addEventListener('click',()=>document.getElementById('guideModal').classList.add('open'));
+      document.querySelectorAll('.modal-layer').forEach(layer=>layer.addEventListener('click',(e)=>{if(e.target===layer)layer.classList.remove('open');}));
+      document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal-layer.open').forEach(x=>x.classList.remove('open'));});
+
+      function setScale(value){ state.scale=Math.max(78,Math.min(100,value)); document.documentElement.style.setProperty('--font-scale',state.scale/100); document.getElementById('scaleSlider').value=state.scale; document.getElementById('scaleValue').textContent=state.scale+'%'; const trainer=document.getElementById('trainer'); trainer.style.transformOrigin='top left'; trainer.style.transform=`scale(${state.scale/100})`; trainer.style.width=`${100/(state.scale/100)}%`; trainer.style.height=`${100/(state.scale/100)}%`; }
+      document.getElementById('scaleSlider').addEventListener('input',e=>setScale(Number(e.target.value)));
+      document.getElementById('resizeGrip').addEventListener('click',()=>setScale(state.scale===100?88:100));
+      let gripStart=null;
+      document.getElementById('resizeGrip').addEventListener('pointerdown',e=>{gripStart={x:e.clientX,y:e.clientY,scale:state.scale};e.currentTarget.setPointerCapture(e.pointerId);});
+      document.getElementById('resizeGrip').addEventListener('pointermove',e=>{if(!gripStart)return;const delta=(e.clientX-gripStart.x)+(e.clientY-gripStart.y);setScale(Math.round(gripStart.scale+delta/9));});
+      document.getElementById('resizeGrip').addEventListener('pointerup',()=>gripStart=null);
+      window.addEventListener('resize',()=>{ if(window.innerHeight<420 && state.scale>88) setScale(88); });
+      render();
+    })();
+  </script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"1954b47c125f43f8b4338b3c4f804e4f"}' crossorigin="anonymous"></script>
+</body>
+</html>
