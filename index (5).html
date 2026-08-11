@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Тренажёр по охране труда — 6 рабочих зон</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a1322}
+body{font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;color:#e8eef7;
+ -webkit-user-select:none;user-select:none;touch-action:manipulation}
+button{font-family:inherit}
+
+#app{position:relative;width:100vw;height:100vh;max-height:600px;overflow:hidden;
+ background:radial-gradient(120% 160% at 50% -30%,#16305a 0%,#0e1a2f 46%,#0b1424 100%)}
+
+.screen{position:absolute;inset:0;display:none;flex-direction:column}
+.screen.active{display:flex}
+
+/* ---------- buttons ---------- */
+.btn{background:#1d3252;color:#dfe9f7;border:.0625rem solid #2e4a76;border-radius:.5rem;
+ padding:.45rem .9rem;font-size:.82rem;cursor:pointer;transition:filter .15s}
+.btn:hover{filter:brightness(1.18)}
+.btn.primary{background:linear-gradient(180deg,#ffc23d,#f0a200);color:#231a02;border-color:#c98a00;font-weight:700}
+.btn.ghost{background:transparent}
+.btn.big{font-size:1.12rem;padding:.8rem 2.2rem;border-radius:.7rem;font-weight:800;letter-spacing:.03em}
+.btn.small{font-size:.72rem;padding:.3rem .6rem}
+.btn.wide{width:100%}
+.btn[disabled]{opacity:.4;cursor:default;filter:none!important}
+
+/* ---------- START ---------- */
+.startWrap{height:100%;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);
+ gap:1.4rem;padding:1.2rem 2rem;align-items:center;max-width:78rem;margin:0 auto}
+.badge{display:inline-block;background:rgba(255,176,32,.14);border:.0625rem solid #ffb020;color:#ffc95e;
+ font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+ padding:.3rem .7rem;border-radius:2rem;margin-bottom:.7rem}
+.startWrap h1{font-size:1.68rem;line-height:1.15;margin-bottom:.5rem}
+.startWrap h1 em{color:#ffb020;font-style:normal}
+.sub{font-size:.88rem;color:#b8c6da;line-height:1.35;margin-bottom:.9rem;max-width:44rem}
+.rules{list-style:none;margin-bottom:1rem}
+.rules li{font-size:.8rem;color:#cfdcec;line-height:1.3;padding:.28rem 0 .28rem 1.5rem;position:relative}
+.rules li::before{content:"▸";position:absolute;left:.35rem;color:#ffb020}
+.rules b{color:#fff}
+.note{font-size:.72rem;color:#7d8fa9;margin-top:.6rem}
+.sRight{display:flex;justify-content:center}
+.sRight svg{width:100%;max-height:21.5rem}
+
+/* ---------- HUD ---------- */
+#hud{height:3.2rem;flex:0 0 3.2rem;display:flex;align-items:center;gap:.6rem;
+ padding:0 .8rem;background:#0f1c31;border-bottom:.0625rem solid #22345a}
+.logo{font-weight:800;font-size:.92rem;white-space:nowrap}
+.logo span{color:#ffb020}
+.ztabs{display:flex;gap:.32rem;flex:1;min-width:0;justify-content:center}
+.ztab{display:flex;flex-direction:column;align-items:center;gap:.1rem;background:#16263d;
+ border:.0625rem solid #24365c;border-radius:.5rem;padding:.25rem .5rem;cursor:pointer;color:#cfdcec;min-width:0}
+.ztab:hover{border-color:#4da3ff}
+.ztab.act{border-color:#ffb020;background:#22334f}
+.ztab.done{border-color:#2ecc71}
+.ztab .zi{font-size:.95rem;line-height:1}
+.ztab .zt{font-size:.6rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:5.2rem}
+.ztab .zd{display:flex;gap:.14rem}
+.ztab .zd i{width:.3rem;height:.3rem;border-radius:50%;background:#3a4f74;display:block}
+.ztab .zd i.on{background:#2ecc71}
+.hitem{background:#16263d;border:.0625rem solid #24365c;border-radius:.5rem;
+ padding:.35rem .6rem;font-size:.82rem;white-space:nowrap;font-variant-numeric:tabular-nums}
+.hitem.score{color:#ffc95e;font-weight:700}
+
+/* ---------- MAIN ---------- */
+#main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 21.5rem;gap:.7rem;padding:.7rem}
+#sceneCol{display:flex;flex-direction:column;gap:.5rem;min-width:0;min-height:0}
+#sceneBox{flex:1;position:relative;background:#0d1a2e;border:.0625rem solid #24365c;
+ border-radius:.6rem;overflow:hidden;min-height:0}
+#sceneBox svg{position:absolute;inset:0;width:100%;height:100%;cursor:crosshair;transition:filter .3s}
+#sceneBox svg text{font-family:inherit}
+#sceneBox svg.dim{filter:brightness(.72) saturate(.8)}
+.hs{pointer-events:all}
+.hintc{fill:none;stroke:#ffb020;stroke-width:3;animation:blink .8s infinite}
+.missc{fill:none;stroke:#ff5a4e;stroke-width:3;animation:fadeO .9s forwards}
+@keyframes blink{50%{opacity:.1}}
+@keyframes fadeO{to{opacity:0}}
+#sceneBar{height:2.35rem;flex:0 0 2.35rem;display:flex;align-items:center;gap:.4rem}
+.pstep{font-size:.68rem;padding:.26rem .5rem;border-radius:.4rem;background:#16263d;
+ border:.0625rem solid #24365c;color:#8fa3c0;white-space:nowrap}
+.pstep.cur{border-color:#ffb020;color:#ffc95e;font-weight:700}
+.pstep.ok{border-color:#2ecc71;color:#7ee2a8}
+.sinfo{margin-left:auto;font-size:.78rem;color:#cfdcec;white-space:nowrap}
+
+#side{background:#101d33;border:.0625rem solid #24365c;border-radius:.6rem;padding:.75rem;
+ display:flex;flex-direction:column;gap:.5rem;min-height:0;overflow:hidden}
+.ptag{font-size:.68rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+ padding:.26rem .5rem;border-radius:.4rem;align-self:flex-start;white-space:nowrap}
+.ptag.t1{background:rgba(77,163,255,.15);color:#7cc0ff;border:.0625rem solid #4da3ff}
+.ptag.t2{background:rgba(255,176,32,.14);color:#ffc95e;border:.0625rem solid #ffb020}
+.ptag.t3{background:rgba(46,204,113,.13);color:#7ee2a8;border:.0625rem solid #2ecc71}
+.intro{font-size:.8rem;color:#c3d0e2;line-height:1.28}
+.fbar{font-size:.85rem}
+.fbar b{color:#ffc95e}
+.flist{list-style:none}
+.flist li{font-size:.73rem;padding:.24rem .45rem;background:#14243e;border-radius:.4rem;
+ margin-bottom:.22rem;color:#7d8fa9;line-height:1.2}
+.flist li.ok{color:#7ee2a8;background:rgba(46,204,113,.1)}
+.qcount{font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:#8fa3c0}
+.q{font-size:.92rem;font-weight:700;line-height:1.25;margin:.1rem 0 .2rem}
+.opts{display:grid;gap:.35rem}
+.opt{display:flex;gap:.5rem;align-items:flex-start;text-align:left;padding:.42rem .5rem;
+ font-size:.78rem;line-height:1.25;background:#16263d;border:.0625rem solid #2e4a76;
+ border-radius:.5rem;cursor:pointer;color:#dfe9f7}
+.opt:hover{border-color:#4da3ff}
+.opt b{flex:0 0 auto;background:#22334f;border-radius:.3rem;padding:.05rem .38rem;color:#7cc0ff}
+.opt.good{background:rgba(46,204,113,.18);border-color:#2ecc71}
+.opt.bad{opacity:.45;border-color:#ff5a4e}
+.slots{display:flex;flex-direction:column}
+.slot{font-size:.72rem;line-height:1.2;padding:.3rem .45rem;background:#0f1b30;
+ border:.0625rem dashed #2e4a76;border-radius:.4rem;margin-bottom:.22rem;color:#7d8fa9}
+.slot b{color:#4da3ff;margin-right:.4rem}
+.slot.on{background:#14243e;border:.0625rem solid #3f8ef2;color:#dfe9f7}
+.pool{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.15rem}
+.chip{font-size:.7rem;line-height:1.2;padding:.3rem .45rem;background:#1d3252;
+ border:.0625rem solid #2e4a76;border-radius:.45rem;cursor:pointer;color:#dfe9f7}
+.chip:hover{border-color:#ffb020}
+.chip.shake{animation:shk .35s}
+@keyframes shk{20%{transform:translateX(-.25rem)}40%{transform:translateX(.25rem)}60%{transform:translateX(-.2rem)}80%{transform:translateX(.2rem)}}
+.fb{min-height:4.6rem;border-radius:.5rem;padding:.5rem .6rem;font-size:.75rem;line-height:1.3;
+ border:.0625rem solid #2e4a76;background:#14243e;color:#c3d0e2}
+.fb .ft{display:block;font-size:.8rem;font-weight:800;margin-bottom:.2rem}
+.fb.ok{border-color:#2ecc71;background:rgba(46,204,113,.09)}
+.fb.ok .ft{color:#7ee2a8}
+.fb.bad{border-color:#ff5a4e;background:rgba(255,90,78,.08)}
+.fb.bad .ft{color:#ff8d84}
+.fb.info .ft{color:#7cc0ff}
+.grow{flex:1}
+.rowbtns{display:flex;gap:.5rem;justify-content:space-between}
+
+/* ---------- FINAL ---------- */
+.finalWrap{height:100%;display:grid;grid-template-columns:24rem minmax(0,1fr);gap:1.2rem;
+ padding:1.1rem 1.6rem;max-width:78rem;margin:0 auto;min-height:0}
+.fleft{display:flex;flex-direction:column;align-items:flex-start;gap:.7rem}
+.fleft h2{font-size:1.35rem}
+.fbadge{width:7rem;height:7rem;border-radius:50%;display:flex;flex-direction:column;
+ align-items:center;justify-content:center;background:rgba(255,176,32,.12);
+ border:.25rem solid #ffb020;font-size:3rem;font-weight:900;color:#ffc95e}
+.fbadge small{font-size:.62rem;font-weight:700;letter-spacing:.1em;color:#c3d0e2}
+.fverdict{font-size:.85rem;color:#cfdcec;line-height:1.3}
+.fstats{list-style:none;width:100%}
+.fstats li{display:flex;justify-content:space-between;font-size:.82rem;
+ padding:.3rem .2rem;border-bottom:.0625rem solid #22345a}
+.fstats b{color:#ffc95e}
+.fright{display:flex;flex-direction:column;gap:.6rem;min-height:0;overflow:hidden}
+.ftable{width:100%;border-collapse:collapse}
+.ftable th{font-size:.64rem;text-transform:uppercase;letter-spacing:.08em;color:#8fa3c0;
+ text-align:left;padding:.25rem .4rem;border-bottom:.0625rem solid #2e4a76}
+.ftable td{font-size:.76rem;padding:.3rem .4rem;border-bottom:.0625rem solid #22345a}
+.ftable td.num{font-variant-numeric:tabular-nums}
+.ftable .okc{color:#7ee2a8}
+.ftable .pc{color:#ffc95e}
+.ftable .nc{color:#8fa3c0}
+.mistbox{flex:1;min-height:0;overflow:hidden;background:#14243e;border:.0625rem solid #24365c;
+ border-radius:.5rem;padding:.5rem .6rem}
+.mistbox h3{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:#ff8d84;margin-bottom:.3rem}
+.mistbox li{font-size:.7rem;line-height:1.3;margin-left:1rem;margin-bottom:.15rem;color:#e3c9c6}
+.mistbox .none{color:#7ee2a8;font-size:.75rem}
+
+/* ---------- toast ---------- */
+#toast{position:absolute;left:50%;bottom:.9rem;transform:translateX(-50%) translateY(.5rem);
+ background:#ffb020;color:#221a02;padding:.4rem .95rem;border-radius:.5rem;font-size:.78rem;
+ font-weight:700;opacity:0;pointer-events:none;transition:all .25s;z-index:9;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ---------- NARROW (<760px) ---------- */
+.narrow .startWrap{grid-template-columns:1fr;padding:.7rem 1rem;gap:.3rem;align-content:center}
+.narrow .sRight{display:none}
+.narrow .startWrap h1{font-size:1.22rem}
+.narrow .sub{font-size:.72rem;margin-bottom:.5rem}
+.narrow .rules li{font-size:.68rem;padding:.14rem 0 .14rem 1.2rem}
+.narrow .btn.big{font-size:.95rem;padding:.6rem 1.6rem}
+.narrow .note{display:none}
+.narrow #hud{gap:.3rem;padding:0 .4rem}
+.narrow .logo span{display:none}
+.narrow .ztab .zt{display:none}
+.narrow .ztab{padding:.22rem .38rem}
+.narrow .hitem{font-size:.7rem;padding:.3rem .45rem}
+.narrow #btnFinish{font-size:.62rem}
+.narrow #main{grid-template-columns:1fr;grid-template-rows:auto auto minmax(0,1fr);gap:.4rem;padding:.45rem}
+.narrow #sceneCol{display:contents}
+.narrow #sceneBox{height:13.5rem;flex:0 0 13.5rem}
+.narrow #sceneBar{flex:0 0 2rem;height:2rem}
+.narrow .pstep{font-size:.58rem;padding:.2rem .35rem}
+.narrow .sinfo{display:none}
+.narrow #side{padding:.55rem;gap:.35rem}
+.narrow .ptag{font-size:.6rem}
+.narrow .intro{display:none}
+.narrow .q{font-size:.78rem}
+.narrow .qcount{font-size:.58rem}
+.narrow .opt{font-size:.66rem;padding:.26rem .4rem;line-height:1.2}
+.narrow .slot{font-size:.63rem;padding:.22rem .4rem;margin-bottom:.18rem}
+.narrow .chip{font-size:.6rem;padding:.24rem .38rem}
+.narrow .fb{min-height:2.4rem;font-size:.65rem;padding:.35rem .45rem}
+.narrow .fb .ft{font-size:.68rem}
+.narrow .fbar{font-size:.72rem}
+.narrow .flist{display:flex;flex-wrap:wrap;gap:.2rem}
+.narrow .flist li{font-size:.6rem;padding:.16rem .35rem;margin:0}
+.narrow .btn{font-size:.72rem;padding:.4rem .7rem}
+.narrow .finalWrap{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr);padding:.7rem;gap:.6rem}
+.narrow .fleft{flex-direction:row;align-items:center;gap:1rem;flex-wrap:wrap}
+.narrow .fbadge{width:4.6rem;height:4.6rem;font-size:2rem}
+.narrow .fleft h2{font-size:1rem;width:100%}
+.narrow .fstats li{font-size:.7rem;padding:.18rem .2rem}
+.narrow .ftable td{font-size:.66rem;padding:.2rem .3rem}
+.narrow .mistbox li{font-size:.62rem}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ============ СТАРТ ============ -->
+  <section class="screen active" id="scrStart">
+    <div class="startWrap">
+      <div class="sLeft">
+        <div class="badge">Учебный тренажёр · Охрана труда</div>
+        <h1>Безопасные методы и приёмы выполнения работ — <em>6 рабочих зон</em></h1>
+        <p class="sub">Обучение безопасным методам и приёмам выполнения работ при воздействии вредных и (или) опасных производственных факторов, источников опасности, идентифицированных в рамках специальной оценки условий труда (СОУТ) и оценки профессиональных рисков (ОПР).</p>
+        <ul class="rules">
+          <li><b>6 рабочих зон:</b> станочный участок, электроустановки, сварочный пост, работы на высоте, склад, химическая лаборатория.</li>
+          <li><b>В каждой зоне 3 этапа:</b> до начала работ, во время работ и после окончания работ.</li>
+          <li><b>Поиск скрытых опасностей:</b> найдите нарушения на иллюстрации. Опасность найдена <b>+10</b>, ошибка <b>−5</b>, подсказка <b>−5</b>.</li>
+          <li><b>Ситуации и порядок действий:</b> верный ответ <b>+10</b> / верный шаг <b>+4</b>, ошибка <b>−5</b> / <b>−4</b>. К каждому действию — пояснение.</li>
+          <li><b>Таймер</b> отсчитывает время прохождения; в конце — оценка и разбор ошибок.</li>
+        </ul>
+        <button class="btn big primary" id="btnStart">▶ &nbsp;Начать</button>
+        <div class="note">Максимум баллов: 540 · Оценка выставляется по итогам всех зон · Интерфейс масштабируется под размер окна</div>
+      </div>
+      <div class="sRight">
+        <svg viewBox="0 0 300 300">
+          <circle cx="150" cy="150" r="128" fill="#13233c" stroke="#ffb020" stroke-width="2.5" stroke-dasharray="5 9"/>
+          <path d="M86 168a64 64 0 0 1 128 0v12H86z" fill="#ffb020"/>
+          <path d="M138 96h24v18h-24z" fill="#e69c12"/>
+          <rect x="76" y="178" width="148" height="15" rx="7.5" fill="#e69c12"/>
+          <path d="M150 210l40 14v28q0 26-40 40q-40-14-40-40v-28z" fill="#1d8a4e" stroke="#2ecc71" stroke-width="3"/>
+          <path d="M133 248l13 14 24-28" stroke="#fff" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          <g font-size="20">
+            <text x="40" y="80">⚙️</text><text x="238" y="80">⚡</text>
+            <text x="20" y="196">🔥</text><text x="262" y="196">🏗️</text>
+            <text x="60" y="278">🚚</text><text x="216" y="278">🧪</text>
+          </g>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ИГРА ============ -->
+  <section class="screen" id="scrGame">
+    <div id="hud">
+      <div class="logo">🦺 <span>Тренажёр ОТ</span></div>
+      <div class="ztabs" id="ztabs"></div>
+      <div class="hitem" id="hudTime">⏱ 00:00</div>
+      <div class="hitem score" id="hudScore">★ 0</div>
+      <button class="btn small ghost" id="btnFinish">Итоги</button>
+    </div>
+    <div id="main">
+      <div id="sceneCol">
+        <div id="sceneBox"></div>
+        <div id="sceneBar">
+          <div id="phaseSteps" style="display:flex;gap:.35rem"></div>
+          <div class="sinfo" id="sceneInfo"></div>
+          <button class="btn small primary" id="btnHint">💡 Подсказка −5</button>
+        </div>
+      </div>
+      <div id="side"></div>
+    </div>
+  </section>
+
+  <!-- ============ ИТОГИ ============ -->
+  <section class="screen" id="scrFinal">
+    <div class="finalWrap" id="finalWrap"></div>
+  </section>
+
+  <div id="toast"></div>
+</div>
+
+<script>
+'use strict';
+const $=s=>document.querySelector(s);
+
+/* ================= вспомогательная графика ================= */
+const person=(x,y,o={})=>{
+ const c=o.c||'#3e6ca6',p=o.p||'#2e3f57',s=o.s||1,f=o.f||'#f2c9a0',h=o.h!==false,v=o.v,hc=o.hc||'#ffb020';
+ return '<g transform="translate('+x+','+y+') scale('+s+')">'
+ +'<rect x="-13" y="-46" width="11" height="46" rx="4" fill="'+p+'"/>'
+ +'<rect x="2" y="-46" width="11" height="46" rx="4" fill="'+p+'"/>'
+ +'<rect x="-16" y="-84" width="32" height="42" rx="9" fill="'+c+'"/>'
+ +(v?'<rect x="-16" y="-84" width="32" height="27" rx="8" fill="'+v+'"/><path d="M-15 -76h30M-15 -68h30" stroke="#eef2f7" stroke-width="3" opacity=".85"/>':'')
+ +'<rect x="-24" y="-80" width="9" height="30" rx="4" fill="'+c+'"/>'
+ +'<rect x="15" y="-80" width="9" height="30" rx="4" fill="'+c+'"/>'
+ +'<circle cx="0" cy="-95" r="11" fill="'+f+'"/>'
+ +(h?'<path d="M-12 -96a12 12 0 0 1 24 0z" fill="'+hc+'"/><rect x="-15" y="-97" width="30" height="4" rx="2" fill="'+hc+'"/>'
+    :'<path d="M-10 -101a10 7 0 0 1 20 0v4h-20z" fill="#5b4630"/>')
+ +(o.mask?'<rect x="-10" y="-100" width="20" height="13" rx="3" fill="#22374f"/>':'')
+ +'</g>';
+};
+
+/* ================= иллюстрации зон ================= */
+const SC=[
+/* 1. Станочный участок */
+()=>`
+<rect width="800" height="345" fill="#c9d5e2"/><rect y="345" width="800" height="105" fill="#94a1b2"/>
+<path d="M0 378H800M0 412H800" stroke="#83909f" stroke-width="2" opacity=".45"/>
+<rect x="52" y="36" width="150" height="94" rx="6" fill="#a9d5ef" stroke="#5a6c85" stroke-width="5"/>
+<path d="M127 36v94M52 83h150" stroke="#5a6c85" stroke-width="4"/>
+<rect x="248" y="44" width="96" height="66" fill="#fdfdfd" stroke="#5a6c85" stroke-width="3"/>
+<path d="M260 82l12-16 9 11 7-7 14 12" stroke="#d64541" stroke-width="4" fill="none"/>
+<text x="296" y="100" font-size="10" text-anchor="middle" fill="#33507a">Работай безопасно</text>
+<rect x="48" y="196" width="20" height="42" rx="8" fill="#d64541"/>
+<rect x="53" y="188" width="10" height="10" fill="#38424e"/>
+<path d="M63 192q11-7 16 3" stroke="#38424e" stroke-width="3" fill="none"/>
+<rect x="714" y="94" width="58" height="42" rx="4" fill="#fff" stroke="#5a6c85" stroke-width="3"/>
+<path d="M743 102v26M730 115h26" stroke="#d64541" stroke-width="6"/>
+<rect x="146" y="188" width="9" height="162" fill="#4a5568"/>
+<path d="M150 188q0-26 28-26" stroke="#4a5568" stroke-width="9" fill="none"/>
+<circle cx="190" cy="162" r="13" fill="#ffe9a8" stroke="#4a5568" stroke-width="4"/>
+<path d="M152 200c-8 52 6 96-6 148" stroke="#23272c" stroke-width="5" fill="none"/>
+<rect x="142" y="266" width="12" height="20" rx="3" fill="#e9edf2"/>
+<path d="M145 269q5 3 0 7q5 3 0 7" stroke="#e67e22" stroke-width="2.5" fill="none"/>
+<rect x="64" y="316" width="58" height="6" fill="#6b7a8f"/>
+<circle cx="84" cy="306" r="8" fill="#bfe4f7" stroke="#37474f" stroke-width="3"/>
+<circle cx="102" cy="306" r="8" fill="#bfe4f7" stroke="#37474f" stroke-width="3"/>
+<path d="M92 306h2M76 303l-8-3M110 303l8-3" stroke="#37474f" stroke-width="3"/>
+<rect x="225" y="262" width="340" height="26" rx="4" fill="#3c5b85"/>
+<rect x="245" y="288" width="300" height="58" fill="#2f4a70"/>
+<rect x="237" y="346" width="316" height="13" fill="#243a56"/>
+<rect x="243" y="182" width="92" height="84" rx="8" fill="#46648f"/>
+<rect x="255" y="194" width="34" height="20" rx="3" fill="#22374f"/>
+<path d="M335 222h18" stroke="#5a708e" stroke-width="10"/>
+<circle cx="352" cy="222" r="27" fill="#9fb2cd" stroke="#2f4a70" stroke-width="6"/>
+<circle cx="352" cy="222" r="9" fill="#5a708e"/>
+<path d="M352 197v10M352 237v10M327 222h10M367 222h10" stroke="#2f4a70" stroke-width="5"/>
+<rect x="316" y="156" width="88" height="13" rx="6" fill="#ffb020" transform="rotate(-27 316 156)"/>
+<path d="M392 206a34 34 0 0 1 0 32" stroke="#7f96b5" stroke-width="3" fill="none" opacity=".8"/>
+<path d="M401 198a43 43 0 0 1 0 48" stroke="#7f96b5" stroke-width="2" fill="none" opacity=".5"/>
+<rect x="376" y="216" width="128" height="13" rx="6" fill="#c9a15a"/>
+<rect x="500" y="194" width="62" height="68" rx="6" fill="#46648f"/>
+<path d="M500 222h-22" stroke="#5a708e" stroke-width="9"/>
+<rect x="636" y="304" width="152" height="12" fill="#8a6a44"/>
+<rect x="644" y="316" width="12" height="68" fill="#6b4f30"/><rect x="764" y="316" width="12" height="68" fill="#6b4f30"/>
+<rect x="644" y="352" width="132" height="8" fill="#6b4f30"/>
+<g transform="rotate(7 700 298)">
+<path d="M672 298h62" stroke="#37474f" stroke-width="6"/>
+<path d="M734 298l17 11" stroke="#37474f" stroke-width="6"/>
+<path d="M698 298v-15" stroke="#37474f" stroke-width="4"/>
+</g>
+${person(470,404,{})}
+<g stroke="#5d6b7a" stroke-width="3" fill="none" opacity=".95">
+<path d="M382 404q6-9 12 0t12 0"/><path d="M420 416q6-9 12 0t12 0"/>
+<path d="M360 422q6-9 12 0t12 0"/><path d="M448 402q6-9 12 0"/>
+<path d="M405 430q6-9 12 0t12 0"/>
+</g>
+<ellipse cx="612" cy="414" rx="50" ry="11" fill="#2e291f" opacity=".88"/>
+<ellipse cx="598" cy="412" rx="15" ry="4" fill="#5a4c33" opacity=".9"/>
+`,
+/* 2. Электроустановки */
+()=>`
+<rect width="800" height="345" fill="#c6d2df"/><rect y="345" width="800" height="105" fill="#94a1b2"/>
+<path d="M0 380H800M0 414H800" stroke="#83909f" stroke-width="2" opacity=".45"/>
+<text x="445" y="66" font-size="14" text-anchor="middle" fill="#33507a">Распределительное устройство 0,4 кВ</text>
+<rect x="270" y="84" width="350" height="224" rx="8" fill="#3f5e88" stroke="#2c4266" stroke-width="5"/>
+<path d="M355 84v224M440 84v224M525 84v224" stroke="#2c4266" stroke-width="4"/>
+<rect x="282" y="98" width="60" height="196" fill="#4a6a94"/>
+<circle cx="312" cy="120" r="5" fill="#2ecc71"/><circle cx="312" cy="138" r="5" fill="#d64541"/>
+<rect x="294" y="160" width="36" height="24" rx="3" fill="#22374f"/>
+<rect x="452" y="98" width="60" height="196" fill="#4a6a94"/>
+<circle cx="482" cy="120" r="5" fill="#2ecc71"/>
+<rect x="462" y="150" width="40" height="24" rx="3" fill="#22374f"/>
+<rect x="536" y="98" width="70" height="196" fill="#4a6a94"/>
+<circle cx="571" cy="120" r="5" fill="#2ecc71"/>
+<rect x="548" y="150" width="46" height="30" rx="3" fill="#22374f"/>
+<rect x="367" y="98" width="60" height="196" fill="#141e2b"/>
+<path d="M377 98q6 40-4 74M397 98q-8 44 6 80M417 98q4 36-6 70" stroke="#d64541" stroke-width="4" fill="none"/>
+<path d="M387 98q10 46-2 88M407 98q-10 40 4 84" stroke="#3f8ef2" stroke-width="4" fill="none"/>
+<path d="M377 176l6 8M397 182l-5 9M415 172l5 7" stroke="#ffd24a" stroke-width="3"/>
+<polygon points="367,98 322,118 322,310 367,294" fill="#4a6a94" stroke="#2c4266" stroke-width="3"/>
+<circle cx="330" cy="212" r="4" fill="#22374f"/>
+<rect x="168" y="126" width="72" height="44" rx="4" fill="#fff" stroke="#d64541" stroke-width="4"/>
+<path d="M206 132l-9 15h7l-4 12 14-16h-8l6-11z" fill="#d64541"/>
+<text x="204" y="163" font-size="8" text-anchor="middle" fill="#d64541">НЕ ВКЛЮЧАТЬ!</text>
+<rect x="66" y="206" width="76" height="7" fill="#6b7a8f"/>
+<path d="M80 200q-2-16 8-16t9 16l1 6h-18z" fill="#f2c230"/>
+<path d="M108 200q-2-16 8-16t9 16l1 6h-18z" fill="#f2c230"/>
+<rect x="712" y="96" width="58" height="42" rx="4" fill="#fff" stroke="#5a6c85" stroke-width="3"/>
+<path d="M741 104v26M728 117h26" stroke="#d64541" stroke-width="6"/>
+<ellipse cx="428" cy="400" rx="58" ry="12" fill="#7fb6dd" opacity=".85"/>
+<ellipse cx="410" cy="397" rx="16" ry="4" fill="#c8e6f7" opacity=".9"/>
+<g transform="rotate(-4 122 404)">
+<rect x="84" y="392" width="80" height="24" rx="12" fill="#3d4550"/>
+<ellipse cx="164" cy="404" rx="8" ry="12" fill="#59626e"/>
+<path d="M92 392v24M106 392v24" stroke="#2b3038" stroke-width="3"/>
+</g>
+<rect x="600" y="380" width="52" height="24" rx="6" fill="#2e7d32"/>
+<rect x="648" y="386" width="14" height="12" fill="#37474f"/>
+<path d="M600 392c-30 8-56 4-84 10" stroke="#23272c" stroke-width="5" fill="none"/>
+<rect x="508" y="394" width="14" height="11" rx="2" fill="#e9edf2"/>
+<path d="M511 396q5 2 0 5q5 2 0 5" stroke="#e67e22" stroke-width="2.5" fill="none"/>
+<rect x="552" y="352" width="66" height="52" fill="#c89b62" stroke="#8a6a44" stroke-width="3"/>
+<rect x="560" y="316" width="52" height="38" fill="#d8b077" stroke="#8a6a44" stroke-width="3"/>
+<path d="M585 316v88" stroke="#8a6a44" stroke-width="2"/>
+`,
+/* 3. Сварочный пост */
+()=>`
+<rect width="800" height="345" fill="#b9c6d4"/><rect y="345" width="800" height="105" fill="#8b98a9"/>
+<path d="M0 380H800M0 414H800" stroke="#7c8999" stroke-width="2" opacity=".45"/>
+<rect x="352" y="52" width="112" height="46" fill="#5a6c85"/>
+<polygon points="352,98 464,98 448,132 368,132" fill="#6b7a8f"/>
+<circle cx="440" cy="75" r="13" fill="#37474f"/>
+<path d="M434 75h12M440 69v12" stroke="#9aa7b6" stroke-width="2.5"/>
+<rect x="470" y="64" width="16" height="20" rx="3" fill="#22374f"/><circle cx="478" cy="70" r="3" fill="#d64541"/>
+<path d="M396 140q8-14 0-26M414 146q8-14 0-26M380 146q8-14 0-26" stroke="#9fb6c9" stroke-width="3" fill="none" opacity=".75"/>
+<rect x="120" y="286" width="96" height="74" rx="8" fill="#37527c"/>
+<circle cx="150" cy="316" r="12" fill="#22374f"/><circle cx="186" cy="316" r="12" fill="#22374f"/>
+<rect x="132" y="346" width="72" height="8" fill="#22374f"/>
+<path d="M216 330c40 60 60 84 90 86c30 2 40-60 60-90" stroke="#23272c" stroke-width="6" fill="none"/>
+<rect x="288" y="404" width="18" height="13" rx="2" fill="#e9edf2" transform="rotate(10 297 410)"/>
+<path d="M292 407q7 3 0 8" stroke="#e67e22" stroke-width="3" fill="none"/>
+<rect x="360" y="272" width="180" height="14" fill="#5a6c85"/>
+<rect x="370" y="286" width="10" height="70" fill="#46566b"/><rect x="520" y="286" width="10" height="70" fill="#46566b"/>
+<rect x="392" y="252" width="120" height="20" fill="#8a97a8"/>
+<circle cx="452" cy="262" r="6" fill="#ffd24a"/>
+<path d="M446 254l-8-9M458 254l8-9M452 252v-13" stroke="#ffb020" stroke-width="2.5"/>
+${person(318,404,{mask:true,c:'#5a4a3a'})}
+<g transform="rotate(-6 493 411)"><rect x="470" y="400" width="46" height="22" fill="#c89b62" stroke="#8a6a44" stroke-width="2"/></g>
+<path d="M528 416q8-10 18-4q10-8 16 2q6 8-6 10q-20 4-28-8z" fill="#4a3d2c"/>
+<g transform="rotate(7 664 300)">
+<rect x="646" y="160" width="36" height="150" rx="14" fill="#d64541"/>
+<rect x="652" y="146" width="24" height="18" rx="4" fill="#37474f"/>
+<path d="M664 146v-10" stroke="#37474f" stroke-width="6"/>
+</g>
+<rect x="712" y="270" width="60" height="60" fill="#8a97a8"/>
+<path d="M718 276v48M730 276v48M742 276v48M754 276v48" stroke="#6b7a8f" stroke-width="5"/>
+<rect x="60" y="112" width="48" height="8" fill="#46566b"/>
+<path d="M68 120a16 20 0 0 0 32 0" stroke="#46566b" stroke-width="5" fill="none"/>
+<rect x="68" y="124" width="32" height="52" rx="9" fill="none" stroke="#8b98a9" stroke-width="2.5" stroke-dasharray="5 4"/>
+<text x="84" y="196" font-size="9" text-anchor="middle" fill="#5a6c85">Огнетушитель</text>
+<rect x="548" y="120" width="8" height="190" fill="#46566b"/><rect x="608" y="120" width="8" height="190" fill="#46566b"/>
+<rect x="552" y="128" width="60" height="150" fill="#e8862e" opacity=".85"/>
+<path d="M722 388h40l-6 30h-28z" fill="#8a5a2c"/>
+<ellipse cx="742" cy="388" rx="20" ry="5" fill="#c9b37e"/>
+<rect x="96" y="252" width="56" height="6" fill="#6b7a8f"/>
+<path d="M108 248h28v-14a14 14 0 0 0-28 0z" fill="#37474f"/>
+<rect x="114" y="238" width="16" height="8" fill="#5ad0e6"/>
+`,
+/* 4. Работы на высоте */
+()=>`
+<rect width="800" height="300" fill="#bcd8ee"/><rect y="300" width="800" height="150" fill="#9aa7b6"/>
+<path d="M0 340H800M0 390H800" stroke="#8a97a6" stroke-width="2" opacity=".5"/>
+<rect x="620" y="70" width="180" height="232" fill="#c7b9a5"/>
+<rect x="640" y="90" width="40" height="40" fill="#8fa6bd"/><rect x="700" y="90" width="40" height="40" fill="#8fa6bd"/>
+<rect x="640" y="150" width="40" height="40" fill="#8fa6bd"/><rect x="700" y="150" width="40" height="40" fill="#8fa6bd"/>
+<path d="M250 430V130M500 430V130" stroke="#3f5e88" stroke-width="8"/>
+<rect x="242" y="308" width="266" height="12" fill="#b98d52"/>
+<rect x="242" y="188" width="266" height="12" fill="#b98d52"/>
+<rect x="242" y="178" width="266" height="10" fill="#a37e4c"/>
+<path d="M250 250H500" stroke="#3f5e88" stroke-width="6"/>
+<path d="M250 150H386" stroke="#3f5e88" stroke-width="6"/>
+<path d="M386 150H500" stroke="#d64541" stroke-width="3" stroke-dasharray="8 7" opacity=".9"/>
+<path d="M196 430L244 196M222 434L270 200" stroke="#8a5a2c" stroke-width="6"/>
+<path d="M204 393l26 4M212 350l26 4M230 266l26 4M238 224l26 4" stroke="#8a5a2c" stroke-width="5"/>
+<rect x="452" y="176" width="24" height="12" fill="#b06a4a"/>
+<rect x="452" y="164" width="24" height="12" fill="#c07a56"/>
+<rect x="462" y="152" width="24" height="12" fill="#b06a4a"/>
+${person(330,188,{s:.85,h:false})}
+<path d="M560 430V376M660 430V376" stroke="#d64541" stroke-width="6"/>
+<path d="M560 388q50 26 100 6" stroke="#d64541" stroke-width="4" fill="none" stroke-dasharray="10 6"/>
+<path d="M660 388q14 10 10 26" stroke="#d64541" stroke-width="4" fill="none"/>
+<path d="M84 424a16 12 0 0 1 32 0z" fill="#ffb020"/>
+<path d="M96 414a16 12 0 0 1 32 0z" fill="#ffb020"/>
+<path d="M90 404a16 12 0 0 1 32 0z" fill="#ffb020"/>
+<rect x="700" y="402" width="52" height="26" rx="4" fill="#d64541"/>
+<path d="M700 410h52" stroke="#a33430" stroke-width="3"/><rect x="720" y="396" width="12" height="8" fill="#a33430"/>
+<path d="M742 386V314" stroke="#37474f" stroke-width="5"/>
+<polygon points="742,268 768,314 716,314" fill="#ffb020" stroke="#37474f" stroke-width="3"/>
+<path d="M742 284l8 14h-16z" fill="#37474f"/>
+`,
+/* 5. Склад / погрузочно-разгрузочные */
+()=>`
+<rect width="800" height="345" fill="#c3cfdb"/><rect y="345" width="800" height="105" fill="#93a0b1"/>
+<path d="M0 380H800M0 414H800" stroke="#82909f" stroke-width="2" opacity=".45"/>
+<path d="M60 100v280M180 100v280M300 100v280" stroke="#d9822b" stroke-width="7"/>
+<path d="M56 160H304M56 250H304M56 340H304" stroke="#d9822b" stroke-width="6"/>
+<rect x="72" y="118" width="44" height="40" fill="#c89b62"/><rect x="122" y="126" width="40" height="32" fill="#b98d52"/>
+<rect x="76" y="206" width="48" height="42" fill="#b98d52"/><rect x="132" y="214" width="40" height="34" fill="#c89b62"/>
+<rect x="72" y="296" width="52" height="42" fill="#c89b62"/><rect x="134" y="304" width="44" height="34" fill="#b98d52"/>
+<g transform="rotate(8 232 150)">
+<rect x="196" y="120" width="56" height="38" fill="#c89b62" stroke="#8a6a44" stroke-width="2"/>
+<rect x="204" y="84" width="48" height="34" fill="#b98d52" stroke="#8a6a44" stroke-width="2"/>
+</g>
+<rect x="196" y="210" width="52" height="38" fill="#c89b62"/>
+<rect x="200" y="300" width="56" height="38" fill="#b98d52"/>
+<circle cx="66" cy="86" r="16" fill="#cfe6f4" stroke="#46566b" stroke-width="4"/>
+<path d="M66 102v14" stroke="#46566b" stroke-width="5"/>
+<rect x="36" y="196" width="44" height="52" rx="4" fill="#d64541"/>
+<rect x="44" y="204" width="28" height="36" fill="#e8e2d8"/>
+<text x="58" y="228" font-size="9" text-anchor="middle" fill="#d64541">ВП</text>
+<rect x="36" y="368" width="64" height="56" rx="6" fill="#37527c"/>
+<path d="M70 378l-10 16h10l-8 14 20-18h-11l9-12z" fill="#ffd24a"/>
+<rect x="636" y="150" width="112" height="190" fill="#7c8999"/>
+<rect x="644" y="158" width="96" height="174" fill="#93a5b5"/>
+<circle cx="656" cy="248" r="4" fill="#37474f"/>
+<rect x="636" y="118" width="112" height="26" rx="4" fill="#2e7d32"/>
+<text x="692" y="136" font-size="11" text-anchor="middle" fill="#fff">АВАРИЙНЫЙ ВЫХОД</text>
+<rect x="648" y="352" width="58" height="46" fill="#c89b62" stroke="#8a6a44" stroke-width="2"/>
+<rect x="668" y="316" width="50" height="38" fill="#d8b077" stroke="#8a6a44" stroke-width="2"/>
+${person(352,290,{s:.72,v:'#c8d21a'})}
+<rect x="300" y="286" width="130" height="64" rx="10" fill="#f2b01e"/>
+<rect x="312" y="236" width="70" height="52" rx="8" fill="#f2b01e"/>
+<rect x="318" y="240" width="58" height="44" fill="#bcd8ee" opacity=".55"/>
+<path d="M312 236l-6 52M382 236l6 52" stroke="#a37a12" stroke-width="5"/>
+<circle cx="330" cy="360" r="22" fill="#2c333c"/><circle cx="330" cy="360" r="9" fill="#8a97a8"/>
+<circle cx="408" cy="360" r="18" fill="#2c333c"/><circle cx="408" cy="360" r="7" fill="#8a97a8"/>
+<path d="M430 250v110" stroke="#46566b" stroke-width="7"/>
+<path d="M438 250v110" stroke="#5a6c85" stroke-width="4"/>
+<path d="M438 348h100M438 358h100" stroke="#37474f" stroke-width="6"/>
+<path d="M492 351l8 4-6 4" stroke="#fff" stroke-width="2" fill="none"/>
+<ellipse cx="455" cy="416" rx="44" ry="10" fill="#2e291f" opacity=".85"/>
+<ellipse cx="443" cy="414" rx="13" ry="3.5" fill="#5a4c33"/>
+${person(585,362,{c:'#7a8a9c',hc:'#8a97a8'})}
+`,
+/* 6. Химическая лаборатория */
+()=>`
+<rect width="800" height="345" fill="#d6e2ec"/><rect y="345" width="800" height="105" fill="#a8b4c2"/>
+<path d="M0 380H800M0 414H800" stroke="#93a0ae" stroke-width="2" opacity=".5"/>
+<text x="86" y="62" font-size="13" fill="#33507a">Химическая лаборатория</text>
+<rect x="80" y="150" width="180" height="8" fill="#6b7a8f"/>
+<rect x="92" y="112" width="22" height="38" rx="3" fill="#8a5a2c"/><rect x="95" y="122" width="16" height="14" fill="#fff"/>
+<rect x="124" y="118" width="20" height="32" rx="3" fill="#3f7a4f"/><rect x="127" y="126" width="14" height="12" fill="#fff"/>
+<rect x="154" y="108" width="24" height="42" rx="3" fill="#e9edf2" stroke="#b8c2cc" stroke-width="2"/>
+<rect x="188" y="118" width="20" height="32" rx="3" fill="#5a4a8a"/><rect x="191" y="126" width="14" height="12" fill="#fff"/>
+<rect x="218" y="112" width="22" height="38" rx="3" fill="#b06a4a"/><rect x="221" y="122" width="16" height="14" fill="#fff"/>
+<rect x="240" y="278" width="300" height="14" fill="#8a6a44"/>
+<rect x="252" y="292" width="12" height="60" fill="#6b4f30"/><rect x="516" y="292" width="12" height="60" fill="#6b4f30"/>
+<rect x="252" y="320" width="276" height="8" fill="#6b4f30"/>
+<path d="M300 278l8-24h10l8 24z" fill="#bfe0f2" stroke="#4a6c85" stroke-width="2"/>
+<path d="M382 244h40l-4 34h-32z" fill="#bfe6d0" opacity=".92" stroke="#4a6c5a" stroke-width="2"/>
+<rect x="386" y="262" width="32" height="14" fill="#4ab07a"/>
+<path d="M392 238q6-10 0-20M406 238q6-10 0-20M418 240q6-10 0-20" stroke="#9fb6c9" stroke-width="2.5" fill="none" opacity=".85"/>
+<circle cx="448" cy="266" r="12" fill="#e2c8e8" stroke="#6a4a7a" stroke-width="2"/>
+<rect x="444" y="246" width="8" height="12" fill="#e2c8e8" stroke="#6a4a7a" stroke-width="2"/>
+<rect x="460" y="270" width="26" height="9" rx="2" fill="#e8d5a3"/>
+<circle cx="500" cy="269" r="9" fill="#d64541"/><path d="M500 260q2-6 7-7" stroke="#4a7a3f" stroke-width="2.5" fill="none"/>
+<path d="M514 258h22v18h-22z" fill="#fff" stroke="#8a97a8" stroke-width="2"/>
+<path d="M536 262a6 6 0 0 1 0 10" stroke="#8a97a8" stroke-width="2.5" fill="none"/>
+<rect x="540" y="80" width="160" height="250" fill="#7c8ea6"/>
+<rect x="552" y="92" width="136" height="180" fill="#2f3d52"/>
+<rect x="552" y="92" width="136" height="46" fill="#bfe0f2" opacity=".8"/>
+<path d="M552 138h136" stroke="#46566b" stroke-width="4"/>
+<rect x="560" y="210" width="120" height="8" fill="#46566b"/>
+<path d="M598 210l6-16h8l6 16z" fill="#bfe0f2" stroke="#46566b" stroke-width="2"/>
+<circle cx="708" cy="104" r="13" fill="#37474f"/>
+<path d="M702 104h12M708 98v12" stroke="#9aa7b6" stroke-width="2.5"/>
+<rect x="700" y="296" width="18" height="22" rx="3" fill="#22374f"/><circle cx="709" cy="302" r="3" fill="#d64541"/>
+<path d="M600 86q8-14 0-26M622 88q8-14 0-26M646 86q8-14 0-26" stroke="#9fb6c9" stroke-width="3" fill="none" opacity=".75"/>
+<ellipse cx="512" cy="412" rx="46" ry="10" fill="#4ab07a" opacity=".8"/>
+<ellipse cx="500" cy="410" rx="13" ry="3.5" fill="#8fd6ae" opacity=".9"/>
+<rect x="734" y="330" width="8" height="42" fill="#46566b"/>
+<circle cx="730" cy="326" r="7" fill="#bfe4f7" stroke="#37474f" stroke-width="2.5"/>
+<circle cx="746" cy="326" r="7" fill="#bfe4f7" stroke="#37474f" stroke-width="2.5"/>
+<path d="M84 282v26q0 8 8 8t8-8v-26z" fill="#f2c230"/>
+<path d="M110 282v26q0 8 8 8t8-8v-26z" fill="#f2c230"/>
+<path d="M80 278h52" stroke="#6b7a8f" stroke-width="5"/>
+<rect x="728" y="196" width="44" height="58" rx="3" fill="#3f7a9f"/>
+<text x="750" y="220" font-size="9" text-anchor="middle" fill="#fff">ПАСПОРТА</text>
+<text x="750" y="232" font-size="9" text-anchor="middle" fill="#fff">БЕЗОПАСНОСТИ</text>
+<path d="M736 240h28M736 248h28" stroke="#cfe2ef" stroke-width="2.5"/>
+`];
+
+/* ================= данные зон ================= */
+const ZONES=[
+{name:'Станочный участок',short:'Станочный участок',icon:'⚙️',
+ before:{intro:'Вы — токарь. До начала работ осмотрите рабочее место: найдите 5 скрытых опасностей и щёлкните по ним.',
+ hazards:[
+ {id:'h1',x:612,y:414,r:38,t:'Масло на полу',txt:'Пролитое масло — опасность поскальзывания и падения под вращающиеся части. Проливы устраняют немедленно; работа начинается только на сухом чистом полу.'},
+ {id:'h2',x:352,y:222,r:34,t:'Отсутствует ограждение патрона',txt:'Защитный кожух откинут: возможен контакт с вращающимися частями и захват одежды. Работа на станке со снятыми ограждениями запрещена.'},
+ {id:'h3',x:420,y:412,r:40,t:'Не убрана стружка',txt:'Стружка не удалена: риск порезов, попадания в глаза, поскальзывания. Стружку удаляют щёткой и крючком — только после остановки станка, не руками.'},
+ {id:'h4',x:150,y:278,r:28,t:'Повреждена изоляция кабеля',txt:'Изоляция кабеля местного освещения повреждена: опасность поражения током. Эксплуатация неисправного электрооборудования запрещена — сообщите руководителю.'},
+ {id:'h5',x:705,y:299,r:28,t:'Инструмент на краю верстака',txt:'Штангенциркуль на краю может упасть на ноги. Верстак содержать в порядке, инструмент класть в отведённое место.'}],
+ decoys:[
+ {id:'d1',x:58,y:214,r:24,t:'Огнетушитель',txt:'Огнетушитель на месте и исправен — нарушения нет.'},
+ {id:'d2',x:93,y:306,r:26,t:'Защитные очки',txt:'Очки — обязательное СИЗ глаз при токарной обработке. Это правильно.'},
+ {id:'d3',x:743,y:115,r:26,t:'Аптечка',txt:'Аптечка на месте, укомплектована — нарушения нет.'}]},
+ during:{questions:[
+ {q:'В процессе обработки заготовки скопилась стружка. Как её правильно удалить?',
+  options:['Сдуть сжатым воздухом','Смахнуть рукой в перчатке','Удалить крючком и щёткой после остановки станка','Смыть СОЖ прямо во время работы'],correct:2,
+  explain:'Сжатый воздух разбрасывает стружку, а руки можно порезать или захватить вращением. Стружку удаляют специальным крючком и щёткой только после полной остановки станка.'},
+ {q:'В какой момент разрешается измерять заготовку?',
+  options:['На малых оборотах шпинделя','Только после полной остановки станка','Во время вращения, если штангенциркуль с изоляцией','В любой момент при достаточном навыке'],correct:1,
+  explain:'Измерения проводят только после полной остановки шпинделя: прикосновение к вращающейся заготовке приводит к тяжёлой травме.'}]},
+ after:{intro:'Смена окончена. Расставьте действия в правильной последовательности.',
+ steps:['Остановить станок и дождаться полной остановки вращения','Извлечь заготовку и инструмент из станка','Убрать стружку крючком и щёткой, обтереть станок','Смазать направляющие, убрать инструмент в отведённое место','Отключить электропитание, сообщить руководителю о замечаниях'],
+ explain:'Станок остановлен, стружка и инструмент убраны, оборудование в порядке — так смена завершается без травм.'}},
+
+{name:'Электроустановки',short:'Электроустановки',icon:'⚡',
+ before:{intro:'Вы — электромонтёр. До начала работ на щите осмотрите зону обслуживания: найдите 5 опасностей.',
+ hazards:[
+ {id:'h1',x:397,y:196,r:44,t:'Открытая дверца щита, токоведущие части',txt:'Токоведущие части доступны: опасность поражения электротоком. Дверцы щитов должны быть закрыты и заперты.'},
+ {id:'h2',x:428,y:400,r:42,t:'Мокрый пол перед щитом',txt:'Влага повышает проводимость тела и пола: возрастает опасность поражения током и поскальзывания. Работы на мокром полу запрещены.'},
+ {id:'h3',x:124,y:404,r:36,t:'Диэлектрический коврик не расстелен',txt:'Перед щитом должен лежать диэлектрический коврик — дополнительное средство защиты от поражения током. Он свёрнут в стороне.'},
+ {id:'h4',x:519,y:399,r:26,t:'Повреждён кабель инструмента',txt:'Изоляция шнура электроинструмента повреждена: опасность поражения током и короткого замыкания. Неисправный инструмент применять запрещено.'},
+ {id:'h5',x:585,y:356,r:40,t:'Щит загромождён коробками',txt:'Доступ к щиту перекрыт: в аварийной ситуации нельзя быстро отключить питание. Проходы и доступ к коммутационным аппаратам держать свободными.'}],
+ decoys:[
+ {id:'d1',x:204,y:148,r:28,t:'Плакат «Не включать!»',txt:'Предупредительный плакат — обязательная мера безопасности при работах в электроустановках. Это правильно.'},
+ {id:'d2',x:104,y:198,r:28,t:'Диэлектрические перчатки',txt:'Перчатки — проверенное электрозащитное средство. Это правильно.'},
+ {id:'d3',x:741,y:117,r:26,t:'Аптечка',txt:'Аптечка на месте — нарушения нет.'}]},
+ during:{questions:[
+ {q:'Что необходимо сделать перед началом работ на электропроводке?',
+  options:['Только предупредить коллег','Отключить напряжение, проверить его отсутствие указателем и вывесить плакат','Работать в диэлектрических перчатках без отключения','Выключить свет в помещении'],correct:1,
+  explain:'Обязательные технические мероприятия: отключение, проверка отсутствия напряжения исправным указателем, вывешивание запрещающего плаката. Работа «на глазок» запрещена.'},
+ {q:'Каким огнетушителем допускается тушить электрооборудование под напряжением?',
+  options:['Водным','Воздушно-пенным','Углекислотным или порошковым','Любым подручным средством'],correct:2,
+  explain:'Вода и пена проводят ток. Электроустановки тушат углекислотными или порошковыми огнетушителями, по возможности предварительно сняв напряжение.'}]},
+ after:{intro:'Работы на щите завершены. Расставьте действия в правильной последовательности.',
+ steps:['Убедиться, что люди удалены от токоведущих частей, убрать инструмент','Снять запрещающий плакат (снимает тот, кто вывесил)','Включить электроустановку в установленном порядке','Проверить работоспособность оборудования','Привести рабочее место в порядок, доложить руководителю'],
+ explain:'Электроустановка включается только после удаления людей и инструмента — в порядке, обратном отключению, с проверкой работоспособности.'}},
+
+{name:'Сварочный пост',short:'Сварочный пост',icon:'🔥',
+ before:{intro:'Вы — электросварщик. Перед огневыми работами осмотрите пост: найдите 5 опасностей.',
+ hazards:[
+ {id:'h1',x:297,y:410,r:30,t:'Повреждён сварочный кабель',txt:'Изоляция кабеля повреждена: опасность поражения током и зажигания от искрения. Кабели должны иметь неповреждённую изоляцию.'},
+ {id:'h2',x:664,y:225,r:42,t:'Баллон не закреплён',txt:'Газовый баллон стоит без крепления и может упасть: излом вентиля грозит взрывом. Баллон крепится вертикально, вдали от источников тепла.'},
+ {id:'h3',x:497,y:410,r:38,t:'Горючие материалы в зоне сварки',txt:'Промасленная ветошь и картон возле поста — источник пожара. Горючие материалы удаляют из зоны огневых работ не менее чем на 5 м.'},
+ {id:'h4',x:408,y:78,r:38,t:'Вытяжная вентиляция не работает',txt:'Зонт вытяжки не включён: сварочные аэрозоли накапливаются в зоне дыхания — риск отравления. Работа без местной вентиляции запрещена.'},
+ {id:'h5',x:84,y:150,r:32,t:'Отсутствует огнетушитель',txt:'Кронштейн пуст: место огневых работ должно быть обеспечено первичным средством пожаротушения. Без огнетушителя работы запрещены.'}],
+ decoys:[
+ {id:'d1',x:582,y:200,r:36,t:'Защитный экран',txt:'Экран защищает окружающих от излучения дуги. Это правильно.'},
+ {id:'d2',x:742,y:396,r:28,t:'Ящик с песком',txt:'Песок — дополнительное средство пожаротушения. Это правильно.'},
+ {id:'d3',x:122,y:242,r:26,t:'Запасная маска',txt:'Запасная маска-«хамелеон» хранится на полке — нарушения нет.'}]},
+ during:{questions:[
+ {q:'Какой комплект СИЗ обязателен для сварщика?',
+  options:['Обычная спецодежда и кепка','Огнестойкая спецодежда, рукавицы, маска-«хамелеон», спецобувь','Только защитные очки','Рукавицы и головной убор'],correct:1,
+  explain:'Спецодежда из огнестойкой ткани, брезентовые рукавицы и маска со светофильтром защищают от искр, брызг металла и ультрафиолетового излучения дуги.'},
+ {q:'В каком случае огневые работы проводить запрещено?',
+  options:['Во время обеденного перерыва','При обнаружении горючих материалов в зоне работ или неисправном оборудовании','Если в помещении работает вентиляция','Если работают два человека'],correct:1,
+  explain:'Огневые работы допускаются после очистки зоны от горючих материалов, при исправном оборудовании, наличии огнетушителя и, при необходимости, наряда-допуска.'}]},
+ after:{intro:'Сварочные работы завершены. Расставьте действия в правильной последовательности.',
+ steps:['Выключить сварочное оборудование, перекрыть вентили баллонов','Дать деталям остыть, при необходимости промаркировать «Горячее»','Осмотреть место работ — исключить тление (наблюдение 3–5 часов)','Убрать огарки электродов и мусор, привести пост в порядок','Проветрить помещение, доложить руководителю об окончании работ'],
+ explain:'После огневых работ место наблюдают 3–5 часов: большинство пожаров от сварки возникает из-за тления уже после ухода исполнителя.'}},
+
+{name:'Работы на высоте',short:'Работы на высоте',icon:'🏗️',
+ before:{intro:'Вы — монтажник. Перед подъёмом на леса осмотрите площадку: найдите 5 опасностей.',
+ hazards:[
+ {id:'h1',x:446,y:150,r:34,t:'Отсутствует ограждение яруса',txt:'Верхнее ограждение рабочего яруса отсутствует: при работе выше 1,8 м без ограждения велик риск падения. Устанавливается бортовое и перильное ограждение.'},
+ {id:'h2',x:234,y:310,r:24,t:'Сломана ступень лестницы',txt:'У лестницы отсутствует ступень: подъём по дефектной лестнице запрещён, её изымают и маркируют «Не использовать».'},
+ {id:'h3',x:466,y:166,r:26,t:'Материалы на краю яруса',txt:'Кирпичи лежат на краю без тары: могут упасть на людей внизу. Материалы хранят в таре, не ближе установленного расстояния от края.'},
+ {id:'h4',x:330,y:110,r:24,t:'Работник без каски',txt:'На строительной площадке каска — обязательное СИЗ: защищает голову от падающих предметов.'},
+ {id:'h5',x:610,y:398,r:38,t:'Опасная зона не ограждена',txt:'Место под работами не ограждено сигнальным ограждением: на людей могут упасть предметы. Требуется ограждение и предупреждающие знаки.'}],
+ decoys:[
+ {id:'d1',x:100,y:412,r:28,t:'Штабель касок',txt:'Каски для рабочих в наличии — нарушения нет.'},
+ {id:'d2',x:726,y:412,r:26,t:'Ящик для инструментов',txt:'Инструментальный ящик закрыт — это правильно.'},
+ {id:'d3',x:742,y:300,r:26,t:'Знак «Опасная зона»',txt:'Предупреждающий знак установлен — это правильно.'}]},
+ during:{questions:[
+ {q:'Допускается ли работа на лесах без ограждения?',
+  options:['Допускается на высоте до 2 м','Запрещена','Допускается с разрешения руководителя','Допускается при повышенной осторожности'],correct:1,
+  explain:'Ограждение высотой 1,1 м с бортовым элементом обязательно. Без него работа возможна только с применением привязи, закреплённой за анкерную точку.'},
+ {q:'Где следует держать инструмент при работе на высоте?',
+  options:['В карманах одежды','На балках и настилах','В сумке для инструмента или таре','В руке'],correct:2,
+  explain:'Незакреплённый инструмент падает с высоты и травмирует людей. Его носят в инструментальной сумке, поднимают и опускают в таре.'}]},
+ after:{intro:'Работы на высоте завершены. Расставьте действия в правильной последовательности.',
+ steps:['Прекратить работы, известить руководителя работ','Убрать инструмент в сумку, материалы — в тару (не сбрасывать вниз!)','Очистить настил лесов от мусора','Спуститься, при обнаружении дефектов оградить неисправные леса','Доложить руководителю об окончании работ и замечаниях'],
+ explain:'На высоте не должно оставаться ничего, что может упасть. Неисправные леса ограждают и маркируют до ремонта.'}},
+
+{name:'Складские работы',short:'Склад',icon:'🚚',
+ before:{intro:'Вы — кладовщик. Перед началом смены осмотрите стеллажи и проезды: найдите 5 опасностей.',
+ hazards:[
+ {id:'h1',x:228,y:128,r:36,t:'Неустойчивый штабель',txt:'Верхние коробки накренились и могут упасть. Неустойчивый штабель перекладывают, соблюдая схемы складирования и пределы высоты.'},
+ {id:'h2',x:680,y:348,r:42,t:'Загромождён аварийный выход',txt:'Коробки перекрывают эвакуационный выход. Проходы и выходы должны быть всегда свободны — это путь эвакуации при пожаре.'},
+ {id:'h3',x:455,y:414,r:36,t:'Масло на полу проезда',txt:'Пятно масла — опасность поскальзывания, в том числе для водителя погрузчика. Проливы сразу засыпают сорбентом и убирают.'},
+ {id:'h4',x:496,y:352,r:18,t:'Трещина на вилах погрузчика',txt:'На вилах видна трещина: вил может сломаться под грузом. Эксплуатация погрузчика с неисправным навесным оборудованием запрещена.'},
+ {id:'h5',x:585,y:314,r:32,t:'Пешеход без сигнального жилета',txt:'В зоне движения погрузчика обязателен сигнальный жилет повышенной видимости: водитель должен заметить человека заранее.'}],
+ decoys:[
+ {id:'d1',x:66,y:90,r:22,t:'Обзорное зеркало',txt:'Зеркало на углу улучшает обзор проезда — это правильно.'},
+ {id:'d2',x:58,y:222,r:26,t:'Пожарный шкаф',txt:'Пожарный шкаф на месте и доступен — нарушения нет.'},
+ {id:'d3',x:68,y:396,r:30,t:'Зарядная станция',txt:'Зарядная зона для электропогрузчика оборудована — нарушения нет.'}]},
+ during:{questions:[
+ {q:'На какой высоте должны находиться вилы погрузчика при перемещении груза?',
+  options:['На уровне глаз для обзора','В транспортном положении: 0,3–0,5 м от пола','На любой удобной высоте','В максимально поднятом положении'],correct:1,
+  explain:'Груз перевозят на опущенных вилах (0,3–0,5 м от пола): ниже центр тяжести — устойчивее погрузчик, меньше последствия возможного столкновения.'},
+ {q:'Что категорически запрещено при работе с погрузчиком?',
+  options:['Подавать звуковой сигнал на поворотах','Перевозить людей на вилах и грузе','Снижать скорость в зоне пешеходов','Осматривать погрузчик перед сменой'],correct:1,
+  explain:'Перевозка людей на вилах и проезд на грузе строго запрещены: это гарантированный риск падения с высоты и тяжёлой травмы.'}]},
+ after:{intro:'Смена окончена. Расставьте действия в правильной последовательности.',
+ steps:['Поставить погрузчик на место стоянки, опустить вилы на пол','Выключить двигатель/питание, затормозить стояночным тормозом','Изъять ключ, сообщить руководителю о неисправностях','Освободить проезды, привести в порядок места хранения','Сделать запись в журнале осмотра техники'],
+ explain:'Погрузчик на стоянке с опущенными вилами и включённым тормозом, проезды свободны — склад готов к следующей смене безопасно.'}},
+
+{name:'Химическая лаборатория',short:'Лаборатория',icon:'🧪',
+ before:{intro:'Вы — лаборант. Перед работой с реактивами осмотрите лабораторию: найдите 5 опасностей.',
+ hazards:[
+ {id:'h1',x:166,y:129,r:24,t:'Реактив без этикетки',txt:'Ёмкость без маркировки: вещество нельзя использовать — его можно перепутать, получить химическую реакцию или ожог. Вся посуда маркируется.'},
+ {id:'h2',x:402,y:252,r:28,t:'Открытая ёмкость с реактивом',txt:'Стакан с летучим веществом открыт: пары попадают в воздух рабочей зоны. Лёгколетучие и вредные вещества держат закрытыми и работают под тягой.'},
+ {id:'h3',x:512,y:412,r:38,t:'Разлив реактива на полу',txt:'Разлитая жидкость — опасность химического ожога и поскальзывания. Разливы немедленно нейтрализуют и убирают по инструкции.'},
+ {id:'h4',x:505,y:264,r:28,t:'Пища на рабочем столе',txt:'Приём и хранение пищи в лаборатории запрещены: реактивы могут попасть в еду — риск отравления. Едят только в специально отведённом месте.'},
+ {id:'h5',x:620,y:150,r:42,t:'Вытяжной шкаф не работает',txt:'Створка поднята, вентилятор выключен: пары реактивов идут в помещение. Работа с вредными веществами — только при работающей вентиляции.'}],
+ decoys:[
+ {id:'d1',x:738,y:330,r:26,t:'Защитные очки',txt:'Очки на подставке — обязательная защита глаз. Это правильно.'},
+ {id:'d2',x:104,y:294,r:28,t:'Кислотощелочные перчатки',txt:'Перчатки на месте — обязательное СИЗ рук. Это правильно.'},
+ {id:'d3',x:750,y:225,r:28,t:'Паспорта безопасности',txt:'Паспорта безопасности (SDS) на реактивы доступны — это правильно.'}]},
+ during:{questions:[
+ {q:'Как правильно определить запах вещества?',
+  options:['Сделать глубокий вдох над ёмкостью','Лёгким движением руки направить воздух от края сосуда к себе','Приблизить ёмкость вплотную к лицу','Запах определять не требуется'],correct:1,
+  explain:'Прямое вдыхание может вызвать ожог дыхательных путей. Пары осторожно направляют ладонью от края сосуда, не наклоняясь над ним.'},
+ {q:'Какие СИЗ обязательны при работе с кислотами и щелочами?',
+  options:['Только халат и шапочка','Очки, кислотощелочные перчатки, халат/фартук, закрытая обувь','Только перчатки','Только респиратор'],correct:1,
+  explain:'Глаза и кожа наиболее уязвимы: химический ожог возникает за секунды. Полный комплект СИЗ обязателен для каждой операции с агрессивными веществами.'}]},
+ after:{intro:'Работы завершены. Расставьте действия в правильной последовательности.',
+ steps:['Закрыть ёмкости с реактивами и убрать в шкаф хранения','Утилизировать остатки в специальные ёмкости (не в раковину!)','Вымыть и просушить лабораторную посуду','Привести рабочее место в порядок, проветрить помещение','Вымыть руки с мылом, сообщить руководителю о замечаниях'],
+ explain:'Реактивы закрыты, отходы в спецёмкостях, руки вымыты — базовые правила завершения работ в химической лаборатории.'}}
+];
+
+const MAX_ZONE=90, MAX_TOTAL=ZONES.length*MAX_ZONE;
+
+/* ================= состояние ================= */
+let S=null, finArm=false, AC=null;
+
+function newState(){
+ return {t0:Date.now(),tm:null,cur:0,
+  zs:ZONES.map(()=>({phase:0,found:new Set(),decoys:new Set(),qi:0,qd:[false,false],
+   pool:null,placedArr:[],done:false,pts:0,mist:[]}))};
+}
+const totalScore=()=>Math.max(0,S.zs.reduce((a,z)=>a+z.pts,0));
+function addPts(st,d){st.pts+=d;$('#hudScore').textContent='★ '+totalScore();}
+function mistake(st,t){st.mist.push(t);}
+function shuffleIdx(n){
+ let a=[...Array(n).keys()];
+ do{for(let i=n-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}}
+ while(a.every((v,i)=>v===i));
+ return a;
+}
+function fmt(ms){
+ const s=Math.floor(ms/1000),m=Math.floor(s/60),h=Math.floor(m/60);
+ const p=x=>String(x).padStart(2,'0');
+ return h>0?h+':'+p(m%60)+':'+p(s%60):p(m)+':'+p(s%60);
+}
+function beep(f,d,type){try{
+ AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+ const o=AC.createOscillator(),g=AC.createGain();
+ o.type=type||'sine';o.frequency.value=f;g.gain.value=.05;
+ o.connect(g);g.connect(AC.destination);o.start();
+ g.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+d);o.stop(AC.currentTime+d);
+}catch(e){}}
+let toastTm=null;
+function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('show');
+ clearTimeout(toastTm);toastTm=setTimeout(()=>el.classList.remove('show'),2600);}
+
+/* ================= рендер ================= */
+function renderTabs(){
+ const el=$('#ztabs');el.innerHTML='';
+ ZONES.forEach((z,i)=>{
+  const st=S.zs[i],b=document.createElement('button');
+  b.className='ztab'+(i===S.cur?' act':'')+(st.phase===3?' done':'');
+  b.innerHTML='<span class="zi">'+z.icon+'</span><span class="zt">'+z.short+'</span>'
+   +'<span class="zd">'+[0,1,2].map(p=>'<i class="'+(st.phase>p?'on':'')+'"></i>').join('')+'</span>';
+  b.onclick=()=>{S.cur=i;openZone();};
+  el.appendChild(b);
+ });
+}
+const mark=(x,y)=>'<g transform="translate('+x+','+y+')">'
+ +'<circle r="15" fill="rgba(46,204,113,.18)" stroke="#2ecc71" stroke-width="3"/>'
+ +'<path d="M-6 0l4 5 8-10" stroke="#2ecc71" stroke-width="3.5" fill="none" stroke-linecap="round"/></g>';
+
+function renderSceneBox(){
+ const z=ZONES[S.cur],st=S.zs[S.cur];
+ $('#sceneBox').innerHTML='<svg id="zsvg" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid meet">'+SC[S.cur]()+'</svg>';
+ const svg=$('#zsvg');
+ if(st.phase===0){
+  let layer='<g>';
+  z.before.hazards.forEach(h=>{if(!st.found.has(h.id))layer+='<circle class="hs" data-id="'+h.id+'" cx="'+h.x+'" cy="'+h.y+'" r="'+h.r+'" fill="transparent"/>';});
+  z.before.decoys.forEach(d=>{if(!st.decoys.has(d.id))layer+='<circle class="hs" data-id="'+d.id+'" cx="'+d.x+'" cy="'+d.y+'" r="'+d.r+'" fill="transparent"/>';});
+  svg.insertAdjacentHTML('beforeend',layer+'</g>');
+ }
+ st.found.forEach(id=>{const h=z.before.hazards.find(q=>q.id===id);
+  svg.insertAdjacentHTML('beforeend',mark(h.x,h.y));});
+ svg.classList.toggle('dim',st.phase!==0);
+}
+function fb(kind,title,text){
+ const el=$('#fbox');if(!el)return;
+ el.className='fb '+kind;
+ el.innerHTML='<span class="ft">'+title+'</span>'+text;
+}
+function renderBar(){
+ const z=ZONES[S.cur],st=S.zs[S.cur];
+ $('#phaseSteps').innerHTML=['До начала работ','Во время работ','После окончания работ']
+  .map((p,i)=>'<span class="pstep '+(st.phase===i?'cur':st.phase>i?'ok':'')+'">'
+   +(st.phase>i?'✓ ':'')+p+'</span>').join('');
+ $('#sceneInfo').innerHTML=
+   st.phase===0?'Опасностей найдено: <b>'+st.found.size+'/'+z.before.hazards.length+'</b>'
+  :st.phase===1?'Ситуация '+(st.qi+1)+'/2'
+  :st.phase===2?'Шагов выполнено: '+st.placedArr.length+'/'+z.after.steps.length
+  :'Зона пройдена ✓';
+ $('#btnHint').style.display=st.phase===0?'':'none';
+}
+function renderSide(){
+ const z=ZONES[S.cur],st=S.zs[S.cur];
+ if(st.phase===0){
+  $('#side').innerHTML=
+   '<div class="ptag t1">Этап 1 · До начала работ</div>'
+  +'<div class="intro">'+z.before.intro+'</div>'
+  +'<div class="fbar">Найдено опасностей: <b id="fCnt">'+st.found.size+' / '+z.before.hazards.length+'</b></div>'
+  +'<ul class="flist" id="fList">'+z.before.hazards.map((h,i)=>'<li id="fl-'+h.id+'" class="'+(st.found.has(h.id)?'ok':'')+'">'
+     +(st.found.has(h.id)?'✓ '+h.t:'? Опасность №'+(i+1)+' — не найдена')+'</li>').join('')+'</ul>'
+  +'<div id="fbox" class="fb info"><span class="ft">Задание</span>Щёлкайте по подозрительным местам на иллюстрации. Внимание: безопасные предметы тоже реагируют на щелчок — ошибка стоит 5 баллов.</div>'
+  +'<div class="grow"></div>'
+  +'<button class="btn primary wide" id="btnNext" disabled>Приступить к работе →</button>';
+  $('#btnNext').onclick=()=>{st.phase=1;openZone();toast('Работа началась — соблюдайте требования охраны труда');};
+ }else if(st.phase===1){renderQ();}
+ else if(st.phase===2){renderOrder();}
+ else{
+  $('#side').innerHTML=
+   '<div class="ptag t3">Зона пройдена ✓</div>'
+  +'<div class="q">«'+z.name+'» — все этапы выполнены</div>'
+  +'<div id="fbox" class="fb ok"><span class="ft">Результат зоны</span>Набрано баллов: '+st.pts+' из '+MAX_ZONE+'.</div>'
+  +'<div class="grow"></div>'
+  +'<button class="btn primary wide" id="btnNext">Следующая зона →</button>';
+  $('#btnNext').onclick=()=>{
+   const nx=S.zs.findIndex(s=>s.phase<3);
+   if(nx<0)finishGame();else{S.cur=nx;openZone();}
+  };
+ }
+}
+function updateBeforeUI(){
+ const z=ZONES[S.cur],st=S.zs[S.cur];
+ const c=$('#fCnt');if(c)c.textContent=st.found.size+' / '+z.before.hazards.length;
+ z.before.hazards.forEach((h,i)=>{
+  const li=$('#fl-'+h.id);
+  if(li&&st.found.has(h.id)){li.className='ok';li.textContent='✓ '+h.t;}
+ });
+ const btn=$('#btnNext');
+ if(btn&&st.found.size===z.before.hazards.length)btn.disabled=false;
+ renderBar();
+}
+function renderQ(){
+ const z=ZONES[S.cur],st=S.zs[S.cur],q=z.during.questions[st.qi];
+ $('#side').innerHTML=
+  '<div class="ptag t2">Этап 2 · Во время работ</div>'
+ +'<div class="qcount">Ситуация '+(st.qi+1)+' / 2 · '+z.name+'</div>'
+ +'<div class="q">'+q.q+'</div>'
+ +'<div class="opts" id="opts">'+q.options.map((o,i)=>'<button class="opt" data-i="'+i+'"><b>'+(i+1)+'</b><span>'+o+'</span></button>').join('')+'</div>'
+ +'<div id="fbox" class="fb info"><span class="ft">Задание</span>Выберите один вариант ответа. Верный ответ +10, ошибка −5.</div>'
+ +'<div class="grow"></div>'
+ +'<button class="btn primary wide" id="btnNext" style="visibility:hidden">'+(st.qi===0?'Следующая ситуация →':'Завершить работу →')+'</button>';
+ $('#opts').addEventListener('click',e=>{
+  const b=e.target.closest('.opt');if(!b||st.qd[st.qi])return;
+  const i=+b.dataset.i;
+  if(i===q.correct){
+   st.qd[st.qi]=true;addPts(st,10);b.classList.add('good');
+   fb('ok','Верно!','+10 · '+q.explain);beep(700,.12);
+   $('#btnNext').style.visibility='visible';
+  }else{
+   b.classList.add('bad');b.disabled=true;addPts(st,-5);
+   mistake(st,'Этап 2, ситуация '+(st.qi+1)+': неверный выбор');
+   fb('bad','Неверно','−5 · Вспомните требования охраны труда и попробуйте ещё раз.');beep(160,.18,'square');
+  }
+ });
+ $('#btnNext').onclick=()=>{
+  if(st.qi===0){st.qi=1;renderSide();renderBar();}
+  else{st.phase=2;openZone();toast('Работы окончены — приведите рабочее место в порядок');}
+ };
+}
+function renderOrder(){
+ const z=ZONES[S.cur],st=S.zs[S.cur];
+ if(!st.pool){st.pool=shuffleIdx(z.after.steps.length);st.placedArr=[];}
+ $('#side').innerHTML=
+  '<div class="ptag t3">Этап 3 · После окончания работ</div>'
+ +'<div class="intro">'+z.after.intro+'</div>'
+ +'<div class="slots">'+z.after.steps.map((s,i)=>'<div class="slot" id="sl'+i+'"><b>'+(i+1)+'</b>Выберите шаг '+(i+1)+'…</div>').join('')+'</div>'
+ +'<div class="pool" id="pool">'+st.pool.map(i=>'<button class="chip" data-i="'+i+'">'+z.after.steps[i]+'</button>').join('')+'</div>'
+ +'<div id="fbox" class="fb info"><span class="ft">Задание</span>Щёлкайте по карточкам в правильной последовательности: верный шаг +4, ошибка −4.</div>'
+ +'<div class="grow"></div>'
+ +'<div class="rowbtns"><button class="btn ghost" id="btnReset">↺ Сбросить</button>'
+ +'<button class="btn primary" id="btnNext" style="visibility:hidden">Завершить зону ✓</button></div>';
+ $('#pool').addEventListener('click',e=>{
+  const c=e.target.closest('.chip');if(!c||st.done)return;
+  const i=+c.dataset.i;
+  if(i===st.placedArr.length){
+   st.placedArr.push(i);addPts(st,4);
+   const sl=$('#sl'+(st.placedArr.length-1));
+   sl.innerHTML='<b>'+st.placedArr.length+'</b>'+z.after.steps[i];
+   sl.classList.add('on');c.remove();beep(600,.08);renderBar();
+   if(st.placedArr.length===z.after.steps.length){
+    st.done=true;
+    fb('ok','Последовательность верна!','+20 за процедуру · '+z.after.explain);
+    $('#btnNext').style.visibility='visible';beep(880,.16);
+   }
+  }else{
+   addPts(st,-4);mistake(st,'Этап 3: шаг «'+z.after.steps[i]+'» поставлен не на место '+(st.placedArr.length+1));
+   c.classList.add('shake');setTimeout(()=>c.classList.remove('shake'),400);
+   fb('bad','Неверный порядок','−4 · Это действие сейчас не первое. Подумайте над логикой последовательности.');
+   beep(160,.18,'square');
+  }
+ });
+ $('#btnReset').onclick=()=>{st.pool=shuffleIdx(z.after.steps.length);st.placedArr=[];st.done=false;renderSide();renderBar();};
+ $('#btnNext').onclick=()=>{
+  st.phase=3;
+  const nx=S.zs.findIndex(s=>s.phase<3);
+  toast(nx<0?'Все зоны пройдены!':'Зона «'+ZONES[S.cur].short+'» завершена: +'+st.pts+' баллов');
+  renderTabs();renderSceneBox();renderSide();renderBar();
+ };
+}
+function openZone(){renderTabs();renderSceneBox();renderSide();renderBar();}
+
+/* клики по иллюстрации */
+$('#sceneBox').addEventListener('click',e=>{
+ if(!S)return;
+ const c=e.target.closest('.hs');if(!c)return;
+ const st=S.zs[S.cur];if(st.phase!==0)return;
+ const z=ZONES[S.cur],id=c.dataset.id;
+ const hz=z.before.hazards.find(q=>q.id===id);
+ if(hz){
+  st.found.add(id);addPts(st,10);
+  $('#zsvg').insertAdjacentHTML('beforeend',mark(hz.x,hz.y));
+  c.remove();
+  fb('ok','Опасность найдена: '+hz.t,'+10 · '+hz.txt);beep(700,.12);
+  updateBeforeUI();
+  if(st.found.size===z.before.hazards.length){
+   fb('ok','Все опасности найдены!','Отличный осмотр. Можно приступать к работе — нажмите «Приступить к работе».');
+   beep(880,.16);
+  }
+ }else{
+  const dc=z.before.decoys.find(q=>q.id===id);
+  if(st.decoys.has(id))return;
+  st.decoys.add(id);addPts(st,-5);
+  mistake(st,'Этап 1: ложное срабатывание — '+dc.t);
+  $('#zsvg').insertAdjacentHTML('beforeend','<circle class="missc" cx="'+dc.x+'" cy="'+dc.y+'" r="'+(dc.r-4)+'"/>');
+  setTimeout(()=>{const m=document.querySelector('.missc');if(m)m.remove();},900);
+  fb('bad',dc.t,'−5 · '+dc.txt);beep(160,.18,'square');
+ }
+});
+$('#btnHint').addEventListener('click',()=>{
+ if(!S)return;
+ const st=S.zs[S.cur],z=ZONES[S.cur];
+ if(st.phase!==0)return;
+ addPts(st,-5);beep(300,.1);
+ const svg=$('#zsvg');
+ z.before.hazards.forEach(h=>{if(!st.found.has(h.id))
+  svg.insertAdjacentHTML('beforeend','<circle class="hintc" cx="'+h.x+'" cy="'+h.y+'" r="'+(h.r-4)+'"/>');});
+ setTimeout(()=>document.querySelectorAll('.hintc').forEach(n=>n.remove()),2400);
+ toast('Подсказка: оставшиеся опасности подсвечены (−5 баллов)');
+});
+
+/* ================= итоги ================= */
+function grade(p){
+ return p>=90?['5','Отлично — к самостоятельной работе допущен']
+      :p>=75?['4','Хорошо — допущен с замечаниями']
+      :p>=60?['3','Удовлетворительно — требуется повторение отдельных тем']
+      :['2','Неудовлетворительно — требуется повторное обучение'];
+}
+function finishGame(){
+ clearInterval(S.tm);
+ const sc=totalScore(),pct=Math.round(sc/MAX_TOTAL*100),g=grade(pct);
+ const rows=ZONES.map((z,i)=>{
+  const st=S.zs[i];
+  const stt=st.phase===3?'<span class="okc">✓ пройдена</span>'
+    :(st.phase===0&&st.found.size===0&&st.pts===0?'<span class="nc">не начата</span>':'<span class="pc">частично</span>');
+  return '<tr><td>'+z.icon+' '+z.name+'</td><td class="num">'+st.pts+' / '+MAX_ZONE+'</td><td class="num">'+st.mist.length+'</td><td>'+stt+'</td></tr>';
+ }).join('');
+ const mists=[];
+ S.zs.forEach((st,i)=>st.mist.forEach(m=>mists.push('Зона '+(i+1)+' («'+ZONES[i].short+'»): '+m)));
+ $('#finalWrap').innerHTML=
+  '<div class="fleft">'
+ +'<h2>🎓 Тренировка завершена</h2>'
+ +'<div class="fbadge">'+g[0]+'<small>ОЦЕНКА</small></div>'
+ +'<div class="fverdict"><b>'+g[1]+'</b><br>Результат: '+pct+'% правильных действий</div>'
+ +'<ul class="fstats">'
+ +'<li>Набрано баллов <b>'+sc+' / '+MAX_TOTAL+'</b></li>'
+ +'<li>Время прохождения <b>'+fmt(Date.now()-S.t0)+'</b></li>'
+ +'<li>Ошибок допущено <b>'+mists.length+'</b></li>'
+ +'</ul>'
+ +'<button class="btn big primary" onclick="location.reload()">↻ Пройти заново</button>'
+ +'</div>'
+ +'<div class="fright">'
+ +'<table class="ftable"><tr><th>Рабочая зона</th><th>Баллы</th><th>Ошибки</th><th>Статус</th></tr>'+rows+'</table>'
+ +'<div class="mistbox"><h3>Разбор ошибок</h3>'
+ +(mists.length===0?'<div class="none">Ошибок нет — отличная работа! Все действия выполнены в соответствии с требованиями охраны труда.</div>'
+  :'<ol>'+mists.slice(0,10).map(m=>'<li>'+m+'</li>').join('')+(mists.length>10?'<li>… и ещё '+(mists.length-10)+'</li>':'')+'</ol>')
+ +'</div></div>';
+ show('scrFinal');
+}
+
+/* ================= запуск ================= */
+function show(id){
+ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+ $('#'+id).classList.add('active');
+}
+$('#btnStart').addEventListener('click',()=>{
+ S=newState();
+ $('#hudScore').textContent='★ 0';
+ $('#hudTime').textContent='⏱ 00:00';
+ S.tm=setInterval(()=>{$('#hudTime').textContent='⏱ '+fmt(Date.now()-S.t0);},500);
+ show('scrGame');
+ openZone();
+ toast('Таймер запущен. Зона 1 — «'+ZONES[0].name+'». Осмотрите рабочее место!');
+ beep(520,.1);
+});
+$('#btnFinish').addEventListener('click',()=>{
+ if(!S)return;
+ const left=S.zs.filter(s=>s.phase<3).length;
+ if(left>0&&!finArm){
+  finArm=true;$('#btnFinish').textContent='Завершить? ('+left+')';
+  setTimeout(()=>{finArm=false;$('#btnFinish').textContent='Итоги';},2600);
+  return;
+ }
+ finishGame();
+});
+
+/* ================= ресайзер / масштабирование ================= */
+function fit(){
+ const vw=Math.max(320,window.innerWidth);
+ const vh=Math.min(window.innerHeight,600);
+ const narrow=vw<760;
+ document.getElementById('app').classList.toggle('narrow',narrow);
+ const refW=narrow?620:1280;
+ let k=Math.min(vw/refW,vh/600);
+ k=Math.max(.5,Math.min(1,k));
+ document.documentElement.style.fontSize=(16*k).toFixed(2)+'px';
+}
+window.addEventListener('resize',fit);
+window.addEventListener('orientationchange',fit);
+fit();
+</script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"1954b47c125f43f8b4338b3c4f804e4f"}' crossorigin="anonymous"></script>
+</body>
+</html>
