@@ -1,0 +1,588 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Учебный тренажёр — первая помощь и СИЗ · ПП РФ № 2464</title>
+<style>
+:root{
+  --bg:#0a1020;
+  --panel:#121d32;
+  --panel-2:#172640;
+  --line:#30435f;
+  --text:#edf3fb;
+  --muted:#9eafc6;
+  --red:#ff5b6e;
+  --red-soft:#6f2639;
+  --yellow:#ffd166;
+  --yellow-soft:#80601a;
+  --cyan:#7dd3fc;
+  --green:#6ee7b7;
+  --danger:#ff8a9a;
+}
+*{box-sizing:border-box}
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+  overflow:hidden;
+}
+body{display:flex;align-items:flex-start;justify-content:center}
+button{font:inherit;color:inherit}
+#app{
+  width:100%;
+  height:100vh;
+  height:100dvh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+  overflow:hidden;
+  background:radial-gradient(circle at 85% 0%,#192945 0,#0a1020 55%);
+}
+#stage{
+  width:100%;
+  max-width:1280px;
+  height:min(700px,100dvh);
+  display:flex;
+  flex-direction:column;
+  background:linear-gradient(145deg,rgba(20,34,59,.98),rgba(8,14,28,.99));
+  border:1px solid #263957;
+  box-shadow:0 20px 60px rgba(0,0,0,.35);
+  overflow:hidden;
+  position:relative;
+  transform-origin:center center;
+}
+.topbar{
+  flex:0 0 auto;
+  min-height:54px;
+  display:flex;
+  align-items:center;
+  gap:16px;
+  padding:6px 20px;
+  border-bottom:1px solid rgba(120,153,195,.24);
+}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.brand-mark{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--red),var(--yellow));position:relative;flex:0 0 28px}
+.brand-mark:after{content:"";position:absolute;inset:6px;border:2px solid var(--bg);border-radius:50%}
+.brand strong{font-size:14px;letter-spacing:.12em;white-space:nowrap}
+.brand span{font-size:12px;color:var(--muted);letter-spacing:.08em;white-space:nowrap}
+.step-nav{display:flex;align-items:center;gap:7px;margin-left:auto}
+.step-btn,.icon-btn{
+  border:1px solid var(--line);
+  background:rgba(20,34,57,.7);
+  border-radius:10px;
+  cursor:pointer;
+  transition:.18s ease;
+}
+.step-btn{height:36px;padding:0 11px;font-size:13px;display:flex;align-items:center;gap:7px;color:var(--muted);white-space:nowrap}
+.step-btn b{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:#253653;color:#c7d7ea;font-size:11px}
+.step-btn.active{border-color:var(--cyan);color:var(--text);background:#19314b}
+.step-btn.done{border-color:var(--green);color:var(--green)}
+.step-btn.done b{background:var(--green);color:#092117}
+.icon-btn{width:36px;height:36px;color:var(--muted);font-size:18px}
+.step-btn:hover,.icon-btn:hover{border-color:var(--cyan);color:var(--text)}
+#content{
+  flex:1 1 auto;
+  min-height:0;
+  overflow:hidden;
+  padding:12px 20px;
+  display:flex;
+  flex-direction:column;
+}
+.pane{
+  flex:1 1 auto;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  width:100%;
+}
+.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);font-weight:800;margin-bottom:4px}
+h1,h2,h3,p{margin:0}
+h2{font-size:25px;line-height:1.05;letter-spacing:-.02em}
+h3{font-size:15px}
+.sub{color:var(--muted);font-size:12.5px;line-height:1.3;margin-top:5px}
+.panel{
+  background:rgba(16,29,51,.82);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:12px 16px;
+  flex:1 1 auto;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+}
+.panel-title{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px}
+.panel-title span{font-size:12px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.source-block{border:1px solid rgba(255,91,110,.34);background:rgba(111,38,57,.17);border-radius:11px;padding:10px;margin-bottom:9px}
+.source-block.current{border-color:rgba(255,209,102,.4);background:rgba(128,96,26,.16)}
+.source-block .label{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:800;margin-bottom:5px}
+.source-block.old .label{color:var(--red)}
+.source-block.current .label{color:var(--yellow)}
+.source-block p{font-size:13px;line-height:1.3;color:#d6e0ee}
+.bullet-list{display:grid;gap:7px}
+.bullet{display:flex;gap:8px;align-items:flex-start;font-size:13px;line-height:1.28;color:#d6e0ee}
+.bullet:before{content:"";width:6px;height:6px;flex:0 0 6px;margin-top:5px;border-radius:50%;background:var(--cyan)}
+.note{font-size:12.5px;line-height:1.3;color:var(--muted);border-left:2px solid var(--cyan);padding-left:9px}
+.task-head{flex:0 0 auto;display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:8px}
+.task-card{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+.role-grid{
+  flex:1 1 auto;
+  min-height:0;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  grid-template-rows:repeat(3,minmax(0,1fr));
+  gap:10px;
+}
+.role-card,.equipment-card{
+  border:1px solid var(--line);
+  border-radius:11px;
+  background:rgba(24,42,70,.72);
+  text-align:left;
+  cursor:pointer;
+  padding:10px 12px;
+  transition:.16s ease;
+}
+.role-card{overflow:hidden;display:flex;flex-direction:column;justify-content:center}
+.role-card:hover,.equipment-card:hover{border-color:#6b87aa;transform:translateY(-1px)}
+.role-card.selected,.equipment-card.selected{border-color:var(--cyan);background:rgba(27,67,92,.9);box-shadow:inset 3px 0 var(--cyan)}
+.role-card .r-top{display:flex;align-items:center;gap:8px}
+.role-card .check,.equipment-card .check{width:18px;height:18px;border:1px solid #617795;border-radius:5px;display:grid;place-items:center;font-size:12px;color:transparent;flex:0 0 18px}
+.role-card.selected .check,.equipment-card.selected .check{background:var(--cyan);border-color:var(--cyan);color:#092333}
+.role-card strong{font-size:14px;line-height:1.15}
+.role-card small{display:block;color:var(--muted);font-size:12.5px;line-height:1.22;padding-left:26px;margin-top:4px}
+.actions{flex:0 0 auto;display:flex;align-items:center;gap:10px;margin-top:9px;flex-wrap:wrap}
+.primary,.secondary{
+  border-radius:10px;border:1px solid transparent;cursor:pointer;font-weight:800;font-size:13.5px;padding:8px 15px;transition:.16s ease
+}
+.primary{background:linear-gradient(135deg,#2c8cb0,#2674aa);border-color:#65c8ec;color:#f6fdff}
+.primary:hover{filter:brightness(1.12)}
+.secondary{background:rgba(34,53,82,.8);border-color:var(--line);color:#d7e4f3}
+.feedback{flex:0 0 auto;min-height:31px;margin-top:6px;border-radius:9px;padding:6px 11px;font-size:12.5px;line-height:1.26;color:var(--muted);background:rgba(8,15,28,.45);border:1px solid transparent}
+.feedback.good{color:var(--green);border-color:rgba(110,231,183,.35);background:rgba(49,120,93,.13)}
+.feedback.bad{color:var(--danger);border-color:rgba(255,138,154,.35);background:rgba(128,42,59,.13)}
+.stage-one{display:flex;flex-direction:column}
+.stage-one .task-card{flex:1 1 auto;min-height:0}
+.evidence-grid{display:grid;gap:8px}
+.evidence-card{border:1px solid var(--line);border-radius:10px;padding:9px;background:rgba(23,39,65,.68)}
+.evidence-card .ref{color:var(--cyan);font-size:12px;font-weight:800;margin-bottom:4px}
+.evidence-card p{font-size:12.5px;line-height:1.28;color:#d6e0ee}
+.status-callout{margin-top:8px;padding:9px;border-radius:10px;border:1px dashed rgba(255,209,102,.55);color:#e8d39b;background:rgba(128,96,26,.1);font-size:12px;line-height:1.28}
+.stage-two{display:flex;flex-direction:column}
+.stage-two-head{flex:0 0 auto;display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:8px}
+.topic-grid{
+  flex:1 1 auto;
+  min-height:0;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  grid-template-rows:repeat(2,minmax(0,1fr));
+  gap:12px;
+}
+.topic-card{border:1px solid var(--line);background:rgba(16,29,51,.82);border-radius:13px;padding:10px 11px;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.topic-top{flex:0 0 auto;display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.topic-no{width:25px;height:25px;border-radius:7px;background:rgba(125,211,252,.12);border:1px solid rgba(125,211,252,.35);display:grid;place-items:center;color:var(--cyan);font-weight:900;font-size:11.5px;flex:0 0 25px}
+.topic-top strong{font-size:13.5px}
+.decision{margin-left:auto;font-size:10.5px;color:var(--muted);border:1px solid var(--line);padding:3px 8px;border-radius:99px;white-space:nowrap}
+.contrast{display:grid;grid-template-columns:1fr 1fr;gap:9px;flex:1 1 auto;min-height:0}
+.mini{border-radius:9px;padding:7px 9px;border:1px solid var(--line);flex:1 1 auto;min-height:0;overflow:hidden}
+.mini.old{background:rgba(111,38,57,.18);border-color:rgba(255,91,110,.32)}
+.mini.now{background:rgba(128,96,26,.15);border-color:rgba(255,209,102,.36)}
+.mini-label{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:900;margin-bottom:3px}
+.mini.old .mini-label{color:var(--red)}
+.mini.now .mini-label{color:var(--yellow)}
+.mini p{font-size:12px;line-height:1.25;color:#dbe5f3}
+.choice-row{flex:0 0 auto;display:flex;gap:6px;margin-top:7px}
+.choice{flex:1;border:1px solid var(--line);background:rgba(28,46,75,.75);border-radius:8px;padding:5px 4px;font-size:12px;cursor:pointer;color:var(--muted);font-weight:700}
+.choice:hover{border-color:#6b87aa;color:var(--text)}
+.choice.selected{border-color:var(--cyan);background:rgba(39,100,130,.5);color:var(--text)}
+.choice.correct{border-color:var(--green);color:var(--green)}
+.stage-three{display:flex;flex-direction:column}
+.stage-three .panel-title h2{font-size:23px}
+.stage-three .panel-title .sub{font-size:11.5px;margin-top:4px}
+.stage-three .panel{flex:1 1 auto;min-height:0}
+.equipment-grid{
+  flex:1 1 auto;
+  min-height:0;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  grid-template-rows:repeat(3,minmax(0,1fr));
+  gap:8px;
+  margin-top:6px;
+}
+.equipment-card{min-height:0;padding:4px 10px;overflow:hidden}
+.equipment-card strong{display:block;font-size:11px;line-height:1.1;padding-left:26px}
+.equipment-card small{display:block;color:var(--muted);font-size:11px;line-height:1.1;padding-left:26px;margin-top:1px}
+.rule-big{font-size:22px;font-weight:900;color:var(--yellow);margin:2px 0 5px}
+.rule-sub{font-size:12.5px;color:var(--muted);line-height:1.28;margin-bottom:9px}
+.rule-row{display:flex;gap:8px;align-items:flex-start;border-top:1px solid rgba(48,67,95,.7);padding:8px 0;font-size:12.5px;line-height:1.28;color:#d8e2ef}
+.rule-row:first-of-type{border-top:0}
+.rule-row b{color:var(--yellow);font-size:11px;min-width:34px}
+.final-banner{margin-top:8px;padding:8px 10px;border-radius:10px;border:1px solid rgba(110,231,183,.36);background:rgba(49,120,93,.13);color:var(--green);font-size:12.5px;line-height:1.28}
+.footer{
+  flex:0 0 auto;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:6px 20px;
+  color:var(--muted);
+  font-size:12px;
+  border-top:1px solid rgba(120,153,195,.16);
+}
+.progress{height:5px;flex:1;background:#1c2b44;border-radius:99px;overflow:hidden}
+.progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));border-radius:99px;transition:.25s ease}
+.footer-right{display:flex;align-items:center;gap:8px}
+.toast{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);padding:9px 15px;border-radius:9px;background:#172a44;border:1px solid var(--cyan);color:#e8f8ff;font-size:12.5px;opacity:0;pointer-events:none;transition:.2s ease;z-index:5;white-space:nowrap}
+.toast.show{opacity:1}
+@media (max-width:640px){
+  .brand span{display:none}
+  .step-btn{padding:0 9px;font-size:12px}
+  #content{padding:10px 12px}
+  .topbar,.footer{padding-left:12px;padding-right:12px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* --- виртуальная симуляция: роль специалиста по ОТ --- */
+.intro{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+.role-line{display:flex;gap:14px;align-items:center}
+.avatar{width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--green));display:grid;place-items:center;font-weight:900;color:#092333;font-size:19px;flex:0 0 54px;box-shadow:0 4px 14px rgba(125,211,252,.28)}
+.brief{margin-top:14px;padding-top:10px;border-top:1px solid rgba(120,153,195,.2)}
+.p-label{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:800;color:var(--yellow);display:block;margin-bottom:8px}
+.personal{border:1px dashed rgba(125,211,252,.45);background:rgba(125,211,252,.06);border-radius:11px;padding:9px 11px;margin-top:9px}
+.personal .p-label{color:var(--cyan);margin-bottom:6px}
+.personal .choice-row{flex-wrap:wrap;gap:6px;margin-top:0}
+.personal .choice{flex:1 1 auto;text-align:left;font-size:11.5px;line-height:1.2;padding:5px 9px}
+.stage-ok{flex:0 0 auto;margin-top:7px;padding:7px 11px;border-radius:9px;border:1px solid rgba(110,231,183,.36);background:rgba(49,120,93,.13);color:var(--green);font-size:12.5px;line-height:1.28}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="stage">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark"></div>
+          <div><strong>ТРЕНАЖЁР</strong><br><span>ПЕРВАЯ ПОМОЩЬ + СИЗ · № 2464</span></div>
+        </div>
+        <div class="step-nav" id="stepNav"></div>
+        <button class="icon-btn" id="resetBtn" title="Начать заново">↺</button>
+      </header>
+      <main id="content"></main>
+      <div class="footer">
+        <span id="progressText">0 из 3 этапов</span>
+        <div class="progress"><i id="progressBar"></i></div>
+        <div class="footer-right"><button class="secondary" id="downloadBtn">Скачать план</button></div>
+      </div>
+      <div class="toast" id="toast"></div>
+  </div>
+</div>
+<script>
+(function(){
+  const stage=document.getElementById('stage');
+  const content=document.getElementById('content');
+  const stepNav=document.getElementById('stepNav');
+  const toast=document.getElementById('toast');
+  /* Вы — специалист по охране труда. Этапы: 0 = брифинг, 1..3 = задания */
+  const state={
+    stage:0,
+    roles:new Set(), eq1:new Set(), eq2:new Set(),
+    pers1:new Set(), pers2:new Set(), pers3:new Set(),
+    mainOk:[false,false,false], persOk:[false,false,false]
+  };
+  window.__sim={state:state,go:function(n){state.stage=n;render()}};
+
+  /* Кто может проводить обучение (директор утверждает приказ, но не обучает) */
+  const roles=[
+    {id:'appointed',title:'Мастер участка',meta:'назначен приказом; прошёл подготовку по первой помощи и обучение по применению СИЗ',ok:true},
+    {id:'specialist',title:'Специалист по охране труда (вы)',meta:'подготовка по первой помощи; обучение правилам применения СИЗ (№ 766н)',ok:true},
+    {id:'provider',title:'Учебная организация',meta:'лицензированная организация, предоставляет квалифицированного преподавателя',ok:true},
+    {id:'director',title:'Директор предприятия',meta:'готов утвердить приказ и программу, но сам обучение не проводит',ok:false},
+    {id:'random',title:'Кадровик',meta:'ведёт учёт работников; подготовки по первой помощи и СИЗ нет',ok:false},
+    {id:'buyer',title:'Заведующий складом',meta:'прошёл короткий инструктаж; приказа и подготовки нет',ok:false},
+    {id:'secretary',title:'Секретарь',meta:'ведёт документооборот; подготовки нет',ok:false},
+    {id:'blogger',title:'Блогер, снимающий ролики о первой помощи',meta:'сертификатов и назначения нет',ok:false},
+    {id:'medworker',title:'Медсестра здравпункта',meta:'медобразование есть, но подготовки преподавателя по программе № 2464 нет',ok:false}
+  ];
+
+  /* Оснащение для занятий по первой помощи */
+  const eqFirstAid=[
+    {id:'cpr',title:'Манекен взрослого и учебный AED',meta:'тренажёр СЛР',ok:true},
+    {id:'airway',title:'Тренажёр дыхательных путей и инородного тела',meta:'учебный тренажёр',ok:true},
+    {id:'bleed',title:'Тренажёр кровотечения, жгуты и повязки',meta:'учебный тренажёр',ok:true},
+    {id:'trauma',title:'Средства для перевязки, иммобилизации и перемещения',meta:'учебные материалы',ok:true},
+    {id:'visual',title:'Карточки алгоритмов и плакаты',meta:'наглядные пособия',ok:true},
+    {id:'slides',title:'Только презентация и видео на экране',meta:'простой вариант — без практики',ok:false},
+    {id:'dummy',title:'Демонстрационный манекен в витрине',meta:'простой вариант — недоступен для отработки',ok:false},
+    {id:'clinical',title:'Боевой клинический дефибриллятор',meta:'слишком дорогое — медицинское оборудование',ok:false},
+    {id:'injection',title:'Тренажёр внутривенных инъекций',meta:'вне программы первой помощи',ok:false}
+  ];
+
+  /* Учебные СИЗ для отработки практических навыков */
+  const eqPPE=[
+    {id:'resp',title:'Учебные противогазы и респираторы',meta:'тренировочные СИЗОД',ok:true},
+    {id:'harness',title:'Учебная страховочная привязь и строп',meta:'отработка регулировки и закрепления',ok:true},
+    {id:'helmet',title:'Учебные каски с регулируемым оголовьем',meta:'отработка подгонки',ok:true},
+    {id:'eyes',title:'Очки защитные и щитки лицевые',meta:'образцы для подгонки',ok:true},
+    {id:'hearing',title:'Противошумные наушники и беруши',meta:'образцы для отработки',ok:true},
+    {id:'posters',title:'Только плакаты и фотографии СИЗ',meta:'простой вариант — без образцов',ok:false},
+    {id:'cotton',title:'Ватные беруши и тканевые маски',meta:'простой вариант — не сертифицированные СИЗ',ok:false},
+    {id:'scba',title:'Дыхательные аппараты на сжатом воздухе каждому',meta:'слишком дорогое — избыточно',ok:false},
+    {id:'suits',title:'Изолирующие костюмы с подачей воздуха',meta:'слишком дорогое — избыточно',ok:false}
+  ];
+
+  /* Личные действия специалиста по охране труда */
+  const pers={
+    1:[
+      {id:'order',text:'Подготовить проект приказа о назначении ответственных',ok:true},
+      {id:'lic',text:'Проверить документы (лицензию) обучающей организации',ok:true},
+      {id:'intro',text:'Провести вводный инструктаж по охране труда',ok:true},
+      {id:'fire',text:'Самостоятельно уволить работников без подготовки',ok:false},
+      {id:'later',text:'Перенести обучение на следующий год',ok:false}
+    ],
+    2:[
+      {id:'kit',text:'Проверить комплектность и целостность тренажёров',ok:true},
+      {id:'cert',text:'Сверить документы о подтверждении соответствия',ok:true},
+      {id:'test',text:'Пробно включить учебный AED и проверить манекены',ok:true},
+      {id:'invoice',text:'Проверить только счёт на оплату',ok:false},
+      {id:'sign',text:'Подписать акт приёмки без осмотра',ok:false}
+    ],
+    3:[
+      {id:'fit',text:'Показать подбор респиратора и проверку герметичности',ok:true},
+      {id:'harness',text:'Показать регулировку привязи и закрепление карабинов',ok:true},
+      {id:'hearing',text:'Показать введение беруш и посадку наушников',ok:true},
+      {id:'slides',text:'Ограничиться презентацией',ok:false},
+      {id:'memo',text:'Раздать памятки и завершить занятие',ok:false}
+    ]
+  };
+  const persLabel={
+    1:'Ваши действия · перед запуском обучения',
+    2:'При приёмке оборудования вы проверите',
+    3:'На практическом занятии вы лично покажете'
+  };
+  const persSet={1:'pers1',2:'pers2',3:'pers3'};
+
+  function doneCount(){return state.mainOk.reduce(function(a,v,i){return a+(v&&state.persOk[i]?1:0)},0)}
+
+  function fitStage(){
+    const vw=window.innerWidth||document.documentElement.clientWidth;
+    const vh=window.innerHeight||document.documentElement.clientHeight;
+    const sw=stage.offsetWidth, sh=stage.offsetHeight;
+    if(!sw||!sh){stage.style.transform='';return}
+    const s=Math.min(vw/sw,vh/sh);
+    const k=(s>1)?s:1;
+    stage.style.transform=(k>1)?'scale('+k+')':'';
+  }
+  if(window.ResizeObserver){new ResizeObserver(fitStage).observe(document.body)}
+  window.addEventListener('resize',fitStage,{passive:true});
+
+  function esc(value){return String(value).replace(/[&<>"']/g,function(ch){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'})[ch]})}
+  function showToast(text){toast.textContent=text;toast.classList.add('show');clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>toast.classList.remove('show'),2200)}
+
+  function renderNav(){
+    const labels=['Назначаем','Первая помощь','СИЗ'];
+    stepNav.innerHTML=labels.map((label,i)=>{
+      const n=i+1, cls=(state.stage===n?'active ':'')+(state.mainOk[i]&&state.persOk[i]?'done':'');
+      return '<button class="step-btn '+cls+'" data-go="'+n+'"><b>'+n+'</b>'+label+'</button>';
+    }).join('');
+    stepNav.querySelectorAll('[data-go]').forEach(btn=>btn.addEventListener('click',()=>{state.stage=Number(btn.dataset.go);render()}));
+    const finished=doneCount();
+    document.getElementById('progressText').textContent=finished+' из 3 этапов';
+    document.getElementById('progressBar').style.width=(finished/3*100)+'%';
+  }
+
+  /* ---- брифинг: вы — специалист по охране труда ---- */
+  function renderIntro(){
+    content.innerHTML=''
+      +'<section class="pane intro">'
+      +'<div class="panel">'
+      +'<div class="eyebrow">Виртуальная симуляция · ваша роль</div>'
+      +'<div class="role-line" style="margin-top:8px"><div class="avatar">СО</div><div><h2>Вы — специалист по охране труда</h2><p class="sub">ООО «Северный завод» · вы отвечаете за организацию обучения и формирование заявок на учебное оснащение</p></div></div>'
+      +'<div class="brief"><span class="p-label">Задача от директора</span><div class="bullet-list">'
+      +'<div class="bullet">Подготовить проект приказа о назначении ответственных за обучение первой помощи и применению СИЗ.</div>'
+      +'<div class="bullet">Сформировать заявку на учебное оснащение для практических занятий по первой помощи.</div>'
+      +'<div class="bullet">Сформировать заявку на учебные СИЗ для отработки практических навыков.</div>'
+      +'<div class="bullet">Лично проконтролировать приёмку, провести инструктажи и практическую демонстрацию.</div>'
+      +'</div></div>'
+      +'<div class="actions"><button class="primary" id="startBtn">Приступить к заданию</button></div>'
+      +'</div>'
+      +'</section>';
+    document.getElementById('startBtn').addEventListener('click',()=>{state.stage=1;render()});
+  }
+
+  /* ---- общие строители ---- */
+  function roleCards(){
+    return roles.map(r=>'<button class="role-card '+(state.roles.has(r.id)?'selected':'')+'" data-role="'+r.id+'" aria-pressed="'+state.roles.has(r.id)+'"><div class="r-top"><span class="check">✓</span><strong>'+esc(r.title)+'</strong></div><small>'+esc(r.meta)+'</small></button>').join('');
+  }
+  function equipCards(list,sel){
+    return list.map(e=>'<button class="equipment-card '+(sel.has(e.id)?'selected':'')+'" data-equip="'+e.id+'" aria-pressed="'+sel.has(e.id)+'"><span class="check">✓</span><strong>'+esc(e.title)+'</strong><small>'+esc(e.meta)+'</small></button>').join('');
+  }
+  function personalBlock(n){
+    const idx=n-1, list=pers[n], sel=state[persSet[n]], persOk=state.persOk[idx];
+    let h='<div class="personal"><span class="p-label">'+persLabel[n]+'</span><div class="choice-row">'
+      +list.map(c=>'<button class="choice '+(sel.has(c.id)?'selected':'')+'" data-pers="'+c.id+'">'+esc(c.text)+'</button>').join('')
+      +'</div>';
+    if(!persOk){
+      h+='<div class="actions" style="margin-top:7px"><button class="primary" id="checkP'+n+'">Проверить действия</button></div>'
+        +'<div class="feedback" id="feedbackP'+n+'">Пояснение появится после проверки.</div>';
+    }else{
+      h+='<div class="stage-ok">✓ Личные действия выполнены верно.</div>';
+    }
+    h+='</div>';
+    return h;
+  }
+  function bindPers(n){
+    content.querySelectorAll('[data-pers]').forEach(btn=>btn.addEventListener('click',()=>{
+      const id=btn.dataset.pers, key=persSet[n], sel=state[key];
+      if(sel.has(id))sel.delete(id);else sel.add(id);
+      (n===1?renderStep1:n===2?renderStep2:renderStep3)();
+    }));
+  }
+  function checkPers(n){
+    const idx=n-1, list=pers[n], good=list.filter(c=>c.ok).every(c=>state[persSet[n]].has(c.id))&&state[persSet[n]].size===list.filter(c=>c.ok).length;
+    state.persOk[idx]=good;
+    const box=document.getElementById('feedbackP'+n);
+    if(good){ (n===1?renderStep1:n===2?renderStep2:renderStep3)(); showToast('Верно!'); }
+    else{
+      box.className='feedback bad';
+      box.textContent='Есть ошибки. Уберите действия вне ваших полномочий и выберите обязательные для специалиста по охране труда.';
+    }
+    renderNav();
+  }
+  function stageHead(no,total,title,sub,dec){
+    return '<div class="task-head"><div><div class="eyebrow">Этап '+no+' / '+total+' · ваша роль</div><h2>'+title+'</h2><p class="sub">'+sub+'</p></div><span class="decision">'+dec+'</span></div>';
+  }
+
+  function renderStep1(){
+    const idx=0, mainOk=state.mainOk[idx];
+    content.innerHTML=''
+      +'<section class="pane stage-one">'
+      +'<div class="panel task-card">'
+      +stageHead(1,3,'Назначаем ответственных','Вы готовите предложения по назначению. Кого включите в проект приказа как лиц, допущенных к проведению обучения? Директор утверждает приказ, но сам обучение не проводит.','9 вариантов')
+      +'<div class="role-grid">'+roleCards()+'</div>'
+      +(mainOk
+        ?'<div class="stage-ok">✓ Состав ответственных подобран верно. Переходим к вашим личным действиям.</div>'
+        :'<div class="actions"><button class="primary" id="check1">Проверить выбор</button></div><div class="feedback" id="feedback1">Пояснение появится после проверки.</div>')
+      +(mainOk?personalBlock(1):'')
+      +'<div class="actions"><button class="secondary" id="clear1">Сбросить этап</button></div>'
+      +'</div>'
+      +'</section>';
+    content.querySelectorAll('[data-role]').forEach(btn=>btn.addEventListener('click',()=>{const id=btn.dataset.role;if(state.roles.has(id))state.roles.delete(id);else state.roles.add(id);renderStep1();renderNav()}));
+    document.getElementById('clear1').addEventListener('click',()=>{state.roles.clear();state.pers1.clear();state.mainOk[0]=false;state.persOk[0]=false;render()});
+    if(!mainOk){
+      document.getElementById('check1').addEventListener('click',()=>{
+        const right=roles.filter(r=>r.ok).map(r=>r.id);
+        const good=right.every(id=>state.roles.has(id)) && state.roles.size===right.length;
+        state.mainOk[0]=good;
+        const box=document.getElementById('feedback1');
+        if(good){renderStep1();showToast('Верно! Теперь ваши действия');}
+        else{box.className='feedback bad';box.textContent='Ответ неполный. Выберите назначенного работника с подготовкой, специалиста по охране труда и учебную организацию. Уберите директора (он утверждает приказ, но не обучает) и роли без подготовки и назначения.';}
+        renderNav();
+      });
+    }else{bindPers(1);document.getElementById('checkP1').addEventListener('click',()=>checkPers(1));}
+  }
+
+  function renderStep2(){
+    const idx=1, mainOk=state.mainOk[idx];
+    content.innerHTML=''
+      +'<section class="pane stage-three">'
+      +'<div class="panel">'
+      +stageHead(2,3,'Закупаем оснащение: первая помощь','Вы формируете заявку на закупку. Отметьте минимальный учебный комплект для практических занятий — только наименования и назначение.','9 вариантов')
+      +'<div class="equipment-grid">'+equipCards(eqFirstAid,state.eq1)+'</div>'
+      +(mainOk
+        ?'<div class="stage-ok">✓ Заявка сформирована верно. Оборудование поступило — проверьте его лично.</div>'
+        :'<div class="actions"><button class="primary" id="check2">Проверить комплект</button></div><div class="feedback" id="feedback2">Пояснение появится после проверки.</div>')
+      +(mainOk?personalBlock(2):'')
+      +'<div class="actions"><button class="secondary" id="clear2">Сбросить этап</button></div>'
+      +'</div>'
+      +'</section>';
+    content.querySelectorAll('[data-equip]').forEach(btn=>btn.addEventListener('click',()=>{const id=btn.dataset.equip;if(state.eq1.has(id))state.eq1.delete(id);else state.eq1.add(id);renderStep2();renderNav()}));
+    document.getElementById('clear2').addEventListener('click',()=>{state.eq1.clear();state.pers2.clear();state.mainOk[1]=false;state.persOk[1]=false;render()});
+    if(!mainOk){
+      document.getElementById('check2').addEventListener('click',()=>{
+        const required=eqFirstAid.filter(e=>e.ok).map(e=>e.id);
+        const good=required.every(id=>state.eq1.has(id))&&state.eq1.size===required.length;
+        state.mainOk[1]=good;
+        const box=document.getElementById('feedback2');
+        if(good){renderStep2();showToast('Верно! Теперь приёмка');}
+        else{box.className='feedback bad';box.textContent='Ответ неполный. Выберите пять учебных позиций: манекен с учебным AED, тренажёры дыхательных путей и кровотечения, средства перевязки и иммобилизации, наглядные пособия. Уберите «презентацию без практики», витринный манекен, боевой дефибриллятор и тренажёр инъекций.';}
+        renderNav();
+      });
+    }else{bindPers(2);document.getElementById('checkP2').addEventListener('click',()=>checkPers(2));}
+  }
+
+  function renderStep3(){
+    const idx=2, mainOk=state.mainOk[idx], allDone=state.mainOk.every((v,i)=>v&&state.persOk[i]);
+    content.innerHTML=''
+      +'<section class="pane stage-three">'
+      +'<div class="panel">'
+      +stageHead(3,3,'Закупаем учебные СИЗ','Вы формируете вторую заявку — на учебные СИЗ для отработки практических навыков применения (приказ Минтруда № 766н).','9 вариантов')
+      +'<div class="equipment-grid">'+equipCards(eqPPE,state.eq2)+'</div>'
+      +(mainOk
+        ?'<div class="stage-ok">✓ Заявка сформирована верно. Проведите практическое занятие.</div>'
+        :'<div class="actions"><button class="primary" id="check3">Проверить комплект</button></div><div class="feedback" id="feedback3">Пояснение появится после проверки.</div>')
+      +(mainOk?personalBlock(3):'')
+      +'<div class="actions"><button class="secondary" id="clear3">Сбросить этап</button></div>'
+      +(allDone?'<div class="final-banner">Симуляция пройдена. Специалист по охране труда: назначил ответственных, сформировал заявки на оснащение и учебные СИЗ, лично проверил приёмку и провёл демонстрацию.</div>':'')
+      +'</div>'
+      +'</section>';
+    content.querySelectorAll('[data-equip]').forEach(btn=>btn.addEventListener('click',()=>{const id=btn.dataset.equip;if(state.eq2.has(id))state.eq2.delete(id);else state.eq2.add(id);renderStep3();renderNav()}));
+    document.getElementById('clear3').addEventListener('click',()=>{state.eq2.clear();state.pers3.clear();state.mainOk[2]=false;state.persOk[2]=false;render()});
+    if(!mainOk){
+      document.getElementById('check3').addEventListener('click',()=>{
+        const required=eqPPE.filter(e=>e.ok).map(e=>e.id);
+        const good=required.every(id=>state.eq2.has(id))&&state.eq2.size===required.length;
+        state.mainOk[2]=good;
+        const box=document.getElementById('feedback3');
+        if(good){renderStep3();showToast('Верно! Теперь занятие');}
+        else{box.className='feedback bad';box.textContent='Ответ неполный. Выберите пять учебных позиций: противогазы и респираторы, страховочную привязь со стропом, каски, очки и щитки, наушники и беруши. Уберите варианты без образцов, несертифицированные и слишком дорогие.';}
+        renderNav();
+      });
+    }else{bindPers(3);document.getElementById('checkP3').addEventListener('click',()=>checkPers(3));}
+  }
+
+  function render(){
+    renderNav();
+    if(state.stage===0)renderIntro();
+    if(state.stage===1)renderStep1();
+    if(state.stage===2)renderStep2();
+    if(state.stage===3)renderStep3();
+    fitStage();
+  }
+
+  document.getElementById('resetBtn').addEventListener('click',()=>{
+    state.stage=0;state.roles.clear();state.eq1.clear();state.eq2.clear();
+    state.pers1.clear();state.pers2.clear();state.pers3.clear();
+    state.mainOk=[false,false,false];state.persOk=[false,false,false];
+    render();showToast('Симуляция перезапущена');
+  });
+  document.getElementById('downloadBtn').addEventListener('click',()=>{
+    const lines=[
+      'ПЛАН ОРГАНИЗАЦИИ ОБУЧЕНИЯ: ПЕРВАЯ ПОМОЩЬ + ПРИМЕНЕНИЕ СИЗ',
+      'Источники: ПП РФ № 2464 (пп. 33–37, 122); приказ Минтруда № 766н; № 767н.',
+      '',
+      'РОЛЬ: специалист по охране труда ООО «Северный завод»',
+      '',
+      '1. НАЗНАЧАЕМ ОТВЕТСТВЕННЫХ',
+      'Проводить обучение могут: назначенный работник с подготовкой, специалист по охране труда и лицензированная учебная организация. Директор утверждает приказ и программу, но сам обучение не проводит.',
+      '',
+      '2. ЗАКУПАЕМ ОСНАЩЕНИЕ ДЛЯ ПЕРВОЙ ПОМОЩИ',
+      'Манекен взрослого и учебный AED; тренажёр дыхательных путей; тренажёр кровотечения, жгуты и повязки; средства перевязки и иммобилизации; наглядные пособия. Практика — не менее 50% часов.',
+      '',
+      '3. ЗАКУПАЕМ УЧЕБНЫЕ СИЗ',
+      'Учебные противогазы и респираторы; страховочная привязь со стропом; каски; очки и щитки; наушники и беруши. Обучение правилам эксплуатации СИЗ — приказ Минтруда № 766н.',
+      '',
+      '4. ЛИЧНЫЕ ДЕЙСТВИЯ СПЕЦИАЛИСТА ПО ОХРАНЕ ТРУДА',
+      'Проект приказа о назначении ответственных; проверка документов обучающей организации; вводный инструктаж. Приёмка: комплектность, документы о соответствии, пробная проверка тренажёров. Занятие: демонстрация подбора респиратора и проверки герметичности, регулировки привязи, применения СИЗ слуха.',
+      '',
+      'Прикладное решение не заменяет юридическую проверку.'
+    ];
+    const blob=new Blob([lines.join('\n')],{type:'text/plain;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='план_специалист_ОТ_обучение_первая_помощь_и_СИЗ.txt';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500);showToast('План скачан');
+  });
+  render();
+})();
+
+</script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"1954b47c125f43f8b4338b3c4f804e4f"}' crossorigin="anonymous"></script>
+</body>
+</html>
