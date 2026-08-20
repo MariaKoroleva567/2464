@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Учебный тренажёр — первая помощь и СИЗ · ПП РФ № 2464</title>
+<title>Учебный симулятор — первая помощь и СИЗ · ПП РФ № 2464</title>
 <style>
 :root{
   --bg:#0a1020;
@@ -251,7 +251,7 @@ h3{font-size:15px}
       <header class="topbar">
         <div class="brand">
           <div class="brand-mark"></div>
-          <div><strong>ТРЕНАЖЁР</strong><br><span>ПЕРВАЯ ПОМОЩЬ + СИЗ · № 2464</span></div>
+          <div><strong>Симулятор</strong><br><span>ПЕРВАЯ ПОМОЩЬ + СИЗ · № 2464</span></div>
         </div>
         <div class="step-nav" id="stepNav"></div>
         <button class="icon-btn" id="resetBtn" title="Начать заново">↺</button>
@@ -396,7 +396,7 @@ h3{font-size:15px}
       +'<div class="panel-title"><div><div class="eyebrow">Этап 3 / 3 · задание</div><h2>Закупаем учебные СИЗ</h2><p class="sub">Отметьте учебные СИЗ для отработки практических навыков применения. Обучение и демонстрация требуются по приказу Минтруда № 766н; указываем только наименования.</p></div><span class="decision">9 вариантов</span></div>'
       +'<div class="equipment-grid">'+equipCards(eqPPE,state.eq2)+'</div>'
       +'<div class="actions"><button class="primary" id="check3">Проверить комплект</button><button class="secondary" id="clear3">Сбросить</button></div><div class="feedback" id="feedback3">Пояснение появится после проверки.</div>'
-      +(state.done.every(Boolean)?'<div class="final-banner">Тренажёр пройден. Последовательность решения: назначить ответственных → закупить оснащение для первой помощи → закупить учебные СИЗ.</div>':'')
+      +(state.done.every(Boolean)?'<div class="final-banner">Симулятор пройден. Последовательность решения: назначить ответственных → закупить оснащение для первой помощи → закупить учебные СИЗ.</div>':'')
       +'</div>'
       +'</section>';
     content.querySelectorAll('[data-equip]').forEach(btn=>btn.addEventListener('click',()=>{const id=btn.dataset.equip;if(state.eq2.has(id))state.eq2.delete(id);else state.eq2.add(id);renderStep3();renderNav()}));
@@ -413,7 +413,7 @@ h3{font-size:15px}
 
   function render(){renderNav();if(state.stage===1)renderStep1();if(state.stage===2)renderStep2();if(state.stage===3)renderStep3();fitStage()}
 
-  document.getElementById('resetBtn').addEventListener('click',()=>{state.stage=1;state.roles.clear();state.eq1.clear();state.eq2.clear();state.done=[false,false,false];render();showToast('Тренажёр сброшен')});
+  document.getElementById('resetBtn').addEventListener('click',()=>{state.stage=1;state.roles.clear();state.eq1.clear();state.eq2.clear();state.done=[false,false,false];render();showToast('Симулятор сброшен')});
   document.getElementById('downloadBtn').addEventListener('click',()=>{
     const lines=[
       'ПЛАН ОРГАНИЗАЦИИ ОБУЧЕНИЯ: ПЕРВАЯ ПОМОЩЬ + ПРИМЕНЕНИЕ СИЗ',
